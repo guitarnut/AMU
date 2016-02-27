@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="ISO-8859-1" ?>
+<project name="Flex Ant File Compiler" default="masterbuild" basedir=".">
+
+    <path id="project.class.path">
+        <path path="${runtime-classpath}"/>
+    </path>
+
+    <!-- Load Environment specific properties from properties file -->
+    <property file="build.properties"/>
+
+    <!-- Load the flex tasks for compiling the actionScript code and running flexUnit -->
+    <taskdef resource="flexTasks.tasks" classpath="${FLEX.TASK.DIR}"/>
+    <taskdef resource="flexUnitTasks.tasks" classpath="${basedir}/${FLEX.ANT.TASK.DIR}"/>
+
+    <!-- Init with echoing some info to the console -->
+    <target name="init" description="Initializes the build">
+        <tstamp/>
+        <echo message="----------------------/\---------------------"/>
+        <echo message="${project.name}-${project.version} [${TODAY}]"/>
+        <echo message="Copyright (c) ${project.year} ${project.owner}"/>
+        <echo message="OS : ${os.name}"/>
+        <echo message="Author: ${author}"/>
+        <echo message="----------------------\/---------------------"/>
+    </target>
+
+    <!-- Compile Main application -->
+    <target name="compile" depends="init" description="Compiles the as source files">
+        <mxmlc file="${main.class}" output="${swf.export}" keep-generated-actionscript="false" incremental="false"
+               static-link-runtime-shared-libraries="true">
+            <load-config filename="${FLEX_HOME}/frameworks/flex-config.xml"/>
+            <source-path path-element="${FLEX_HOME}/frameworks"/>
+            <compiler.source-path path-element="${src.dir}"/>
+            <!--
+            <compiler.include-libraries dir="${basedir}/${lib.dir}" append="true">
+                <include name="openvv.swc"/>
+            </compiler.include-libraries>
+            -->
+        </mxmlc>
+        <!--
+        <copy todir="${bin.dir}">
+            <fileset dir="${ovv.dir}"/>
+        </copy>
+        -->
+    </target>
+
+    <!-- Run all, default -->
+    <target name="build" depends="compile" description="Complete build"/>
+
+    <!-- Run unit test -->
+    <target name="test" depends="compileTestRunner, unit-tests" description="Complete build in efficient sequence"/>
+    <target name="compileTestRunner">
+        <mxmlc file="${basedir}/${test.dir}/${flex.unit.runner}" output="${test.dir}/${swf.test}" debug="true"
+               keep-generated-actionscript="true" static-link-runtime-shared-libraries="true">
+            <load-config filename="${FLEX_HOME}/frameworks/flex-config.xml"/>
+            <source-path path-element="${FLEX_HOME}/frameworks"/>
+            <compiler.source-path path-element="${src.dir}"/>
+            <compiler.include-libraries dir="${basedir}/${lib.dir}" append="true">
+                <include name="*.*"/>
+            </compiler.include-libraries>
+        </mxmlc>
+    </target>
+
+    <target name="unit-tests" depends="init" description="runs the tests">
+        <flexunit swf="${basedir}/tests/Tests.swf" toDir="${basedir}/${test.dir}" haltonfailure="false" verbose="true"
+                  localTrusted="true" failureproperty="flexunit.failed"/>
+    </target>
+
+    <!-- Clean output dirs -->
+    <!--
+    <target name="clean" description="clean all generated files">
+        <delete includeemptydirs="true">
+            <fileset dir="${docs.asdoc.dir}" includes="**/*"/>
+            <fileset dir="${bin.dir}" includes="**/*" />
+            <fileset dir="${report.dir}/html" includes="**/*" />
+        </delete>
+        <delete>
+            <fileset dir="${report.dir}" includes="**/*.xml" />
+        </delete>
+    </target>
+    -->
+
+</project>
