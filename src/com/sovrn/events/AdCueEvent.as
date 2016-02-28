@@ -5,6 +5,7 @@ package com.sovrn.events {
 
         public static const AD_CUE_READY:String = "AD_CUE_READY";
         public static const AD_CUE_IMPRESSION:String = "AD_CUE_IMPRESSION";
+        public static const AD_CUE_COMPLETE:String = "AD_CUE_COMPLETE";
         public static const AD_CUE_TIMEOUT:String = "AD_CUE_TIMEOUT";
         public static const AD_CUE_ERROR:String = "AD_CUE_ERROR";
         public static const AD_CUE_EMPTY:String = "AD_CUE_EMPTY";

@@ -1,16 +1,20 @@
 package {
+
     import com.sovrn.ads.AdCall;
     import com.sovrn.ads.AdController;
     import com.sovrn.events.AdManagerEvent;
-    import com.sovrn.model.ApplicationModel;
+    import com.sovrn.model.ApplicationVO;
+    import com.sovrn.utils.Console;
     import com.sovrn.utils.StringTools;
     import com.sovrn.vpaid.VPAIDWrapper;
 
     import flash.display.Sprite;
+    import flash.system.Security;
+    import flash.utils.setTimeout;
 
     public class Sovrn extends Sprite {
 
-        private var applicationConfig:Object;
+        private var applicationConfig:ApplicationVO;
         private var vpaid:VPAIDWrapper;
         private var adController:AdController;
         private var adCall:AdCall;
@@ -18,13 +22,25 @@ package {
         private var adDeliveryCalled:Boolean;
 
         public function Sovrn() {
+            Security.allowDomain("*");
+            Security.allowInsecureDomain("*");
+
+            try {
+                //loaderInfo.uncaughtErrorEvents.addEventListener(UncaughtErrorEvent.UNCAUGHT_ERROR, uncaughtErrorHandler);
+            } catch (e:Error) {
+                //
+            }
+
             initCalled = false;
             adDeliveryCalled = false;
 
-            adController = new AdController();
-
-            vpaid = new VPAIDWrapper(adController);
+            vpaid = new VPAIDWrapper();
             vpaid.addEventListener(AdManagerEvent.INIT_AD_CALLED, serveAds);
+
+            adController = new AdController();
+            vpaid.adController = adController;
+
+            Console.log("initializing");
 
             config();
         }
@@ -34,23 +50,44 @@ package {
         }
 
         private function config():void {
-            var params:Object = this.loaderInfo.parameters;
+            if (this.loaderInfo.parameters) {
+                var params:Object = this.loaderInfo.parameters;
 
-            var appModelBuilder:ApplicationModel = new ApplicationModel();
-            appModelBuilder.setParameters(params);
-            appModelBuilder.setPublisherId(params.u);
-            appModelBuilder.setPublisherLoc(params.loc);
-            appModelBuilder.setVtid(params.vtid);
-            appModelBuilder.setZoneId(params.zoneId);
-            appModelBuilder.setServer(params.ljt);
-            appModelBuilder.setStageWidth(params.vidwidth || this.width || 0);
-            appModelBuilder.setStageHeight(params.vidheight || this.height || 0);
-            appModelBuilder.setTrueLoc("");
-            appModelBuilder.setTrueDomain(StringTools.domain(""));
+                applicationConfig = new ApplicationVO();
+                applicationConfig.parameters = params;
+                applicationConfig.publisherId = params.u || params.sovrnid;
+                applicationConfig.publisherLoc = params.loc;
+                applicationConfig.vtid = params.vtid;
+                applicationConfig.zoneId = params.zoneid;
+                applicationConfig.server = params.ljt;
+                applicationConfig.stageWidth = params.vidwidth || this.width || 0;
+                applicationConfig.stageHeight = params.vidheight || this.height || 0;
+                applicationConfig.trueLoc = "";
+                applicationConfig.trueDomain = StringTools.domain("");
 
-            applicationConfig = appModelBuilder.build();
+                if (validateConfig()) {
+                    Console.log("config complete");
+                    getAds();
+                } else {
+                    Console.log("invalid config");
+                    vpaid.adError();
+                    end();
+                }
+            } else {
+                setTimeout(function ():void {
+                    config();
+                }, 200)
+            }
+        }
 
-            getAds();
+        private function validateConfig():Boolean {
+            var valid:Boolean = true;
+
+            valid = Boolean(applicationConfig.zoneId != 0) &&
+                    Boolean(applicationConfig.vtid != null) &&
+                    Boolean(applicationConfig.publisherId != null);
+
+            return valid;
         }
 
         private function getAds():void {
@@ -62,11 +99,14 @@ package {
             switch (e.type) {
                 case AdManagerEvent.AD_DELIVERY_COMPLETE:
                     adCall.removeEventListener(AdManagerEvent.AD_DELIVERY_COMPLETE, serveAds);
-                    adController.setAds(e.data.ads);
+                    adController.ads = e.data.ads;
                     adDeliveryCalled = true;
+                    Console.log("ad delivery complete");
                     break;
                 case AdManagerEvent.INIT_AD_CALLED:
+                    adController.initConfig = e.data;
                     initCalled = true;
+                    Console.log("initAd() called");
                     break;
             }
 
@@ -76,7 +116,9 @@ package {
         }
 
         private function end():void {
-
+            adController = null;
+            initCalled = false;
+            adDeliveryCalled = false;
         }
 
     }

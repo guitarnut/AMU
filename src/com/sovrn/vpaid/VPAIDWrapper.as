@@ -1,8 +1,10 @@
 package com.sovrn.vpaid {
+
     import com.sovrn.ads.AdController;
     import com.sovrn.events.AdManagerEvent;
 
     import flash.display.Sprite;
+    import flash.events.EventDispatcher;
 
     import vpaid.IVPAID;
     import vpaid.VPAIDEvent;
@@ -10,18 +12,46 @@ package com.sovrn.vpaid {
     public class VPAIDWrapper extends Sprite implements IVPAID {
 
         private const VPAID_VERSION:String = "2.0";
-        private var adController:AdController;
+        private var _adController:AdController;
+        private var adEvents:EventDispatcher;
 
-        public function VPAIDWrapper(adController:AdController) {
-            this.adController = adController;
+        public function VPAIDWrapper() {
+        }
+
+        public function set adController(obj:AdController):void {
+            if (_adController) removeControllerLsiteners();
+            _adController = obj;
+            addControllerListeners();
+        }
+
+        // this ends the session
+        public function adError():void {
+            dispatchEvent(new VPAIDEvent(VPAIDEvent.AdError));
+        }
+
+        private function addControllerListeners():void {
+            _adController.addEventListener(VPAIDEvent.AdLoaded, handleAdControllerEvent);
+            _adController.addEventListener(VPAIDEvent.AdImpression, handleAdControllerEvent);
+            _adController.addEventListener(VPAIDEvent.AdError, handleAdControllerEvent);
+            _adController.addEventListener(VPAIDEvent.AdStopped, handleAdControllerEvent);
+        }
+
+        private function removeControllerLsiteners():void {
+            _adController.removeEventListener(VPAIDEvent.AdLoaded, handleAdControllerEvent);
+            _adController.removeEventListener(VPAIDEvent.AdImpression, handleAdControllerEvent);
+            _adController.removeEventListener(VPAIDEvent.AdError, handleAdControllerEvent);
+            _adController.removeEventListener(VPAIDEvent.AdStopped, handleAdControllerEvent);
         }
 
         private function handleAdControllerEvent(e:VPAIDEvent):void {
-            switch(e.type) {
+            e.stopImmediatePropagation();
+
+            switch (e.type) {
                 case VPAIDEvent.AdError:
                     dispatchEvent(new VPAIDEvent(VPAIDEvent.AdError));
                     break;
                 case VPAIDEvent.AdLoaded:
+                    adEvents = _adController.adEventDispatcher;
                     dispatchEvent(new VPAIDEvent(VPAIDEvent.AdLoaded));
                     break;
             }
@@ -36,7 +66,7 @@ package com.sovrn.vpaid {
                 width: width,
                 height: height,
                 viewMode: viewMode,
-                bitrate: desiredBitrate,
+                desiredBitrate: desiredBitrate,
                 creativeData: creativeData,
                 environmentVars: environmentVars
             }));
@@ -119,6 +149,5 @@ package com.sovrn.vpaid {
         public function get adCompanions():String {
             return "";
         }
-
     }
 }

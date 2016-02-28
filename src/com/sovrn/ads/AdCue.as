@@ -1,5 +1,6 @@
 package com.sovrn.ads {
     import com.sovrn.events.AdCueEvent;
+    import com.sovrn.model.InitConfigVO;
 
     import flash.display.Sprite;
 
@@ -7,12 +8,14 @@ package com.sovrn.ads {
 
         private var ads:Array;
         private var currentAd:IAdInstance;
+        private var initConfig:InitConfigVO;
 
         public function AdCue(ads:Array) {
             this.ads = ads;
         }
 
-        public function start():void {
+        public function start(obj:InitConfigVO):void {
+            initConfig = obj;
             loadAd();
         }
 
