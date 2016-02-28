@@ -1,6 +1,8 @@
 package com.sovrn.constants {
 
     public class Config {
+        public static const VPAID_VERSION:String = "2.0";
+
         public static const SERVER:String = "ap.lijit.com";
 
         public static const ENDPOINT_LOG:String = "vlog";

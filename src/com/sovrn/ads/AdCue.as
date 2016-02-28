@@ -27,9 +27,21 @@ package com.sovrn.ads {
             }
         }
 
+        private function adReady():void {
+            dispatchEvent(new AdCueEvent(AdCueEvent.AD_CUE_READY));
+        }
+
         public function next():void {
             ads.splice(0,1);
             loadAd();
+        }
+
+        private function destroyAd():void {
+
+        }
+
+        public function stop():void {
+            dispatchEvent(new AdCueEvent(AdCueEvent.AD_CUE_COMPLETE));
         }
 
     }

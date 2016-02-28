@@ -5,6 +5,7 @@ package {
     import com.sovrn.events.AdManagerEvent;
     import com.sovrn.model.ApplicationVO;
     import com.sovrn.utils.Console;
+    import com.sovrn.utils.ObjectTools;
     import com.sovrn.utils.StringTools;
     import com.sovrn.vpaid.VPAIDWrapper;
 
@@ -106,7 +107,7 @@ package {
                 case AdManagerEvent.INIT_AD_CALLED:
                     adController.initConfig = e.data;
                     initCalled = true;
-                    Console.log("initAd() called");
+                    Console.log("initAd() called\n\n" + ObjectTools.values(e.data));
                     break;
             }
 

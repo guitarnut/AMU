@@ -15,6 +15,19 @@ package com.sovrn.utils {
             return query.join("&");
         }
 
+        public static function values(obj:Object, exclude:Array = null):String {
+            var query:Array = [];
+            exclude = exclude || [];
+
+            for(var val:String in obj) {
+                if (obj[val] && exclude.indexOf(exclude) == -1) {
+                    query.push(val + ": " + obj[val]);
+                }
+            }
+
+            return query.join(",\n");
+        }
+
     }
 
 }

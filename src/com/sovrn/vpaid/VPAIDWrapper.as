@@ -1,6 +1,8 @@
 package com.sovrn.vpaid {
 
     import com.sovrn.ads.AdController;
+    import com.sovrn.constants.AdVPAIDEvents;
+    import com.sovrn.constants.Config;
     import com.sovrn.events.AdManagerEvent;
 
     import flash.display.Sprite;
@@ -9,24 +11,30 @@ package com.sovrn.vpaid {
     import vpaid.IVPAID;
     import vpaid.VPAIDEvent;
 
+    /*
+
+    The VPAID Wrapper does not know or care if an ad is available. It relays method calls from the video player
+    to the ad controller and passes on approved VPAID events from the event dispatcher when it receives them.
+    No state is maintained in this class. It receives a single instance of the ad controller and the
+    ad controller's event dispatcher.
+
+    */
+
     public class VPAIDWrapper extends Sprite implements IVPAID {
 
-        private const VPAID_VERSION:String = "2.0";
         private var _adController:AdController;
         private var adEvents:EventDispatcher;
 
         public function VPAIDWrapper() {
         }
 
-        public function set adController(obj:AdController):void {
-            if (_adController) removeControllerLsiteners();
-            _adController = obj;
-            addControllerListeners();
-        }
+        // custom methods
 
-        // this ends the session
-        public function adError():void {
-            dispatchEvent(new VPAIDEvent(VPAIDEvent.AdError));
+        public function set adController(obj:AdController):void {
+            _adController = obj;
+            adEvents = _adController.adEventDispatcher;
+            addControllerListeners();
+            addDispatcherListeners();
         }
 
         private function addControllerListeners():void {
@@ -36,11 +44,14 @@ package com.sovrn.vpaid {
             _adController.addEventListener(VPAIDEvent.AdStopped, handleAdControllerEvent);
         }
 
-        private function removeControllerLsiteners():void {
-            _adController.removeEventListener(VPAIDEvent.AdLoaded, handleAdControllerEvent);
-            _adController.removeEventListener(VPAIDEvent.AdImpression, handleAdControllerEvent);
-            _adController.removeEventListener(VPAIDEvent.AdError, handleAdControllerEvent);
-            _adController.removeEventListener(VPAIDEvent.AdStopped, handleAdControllerEvent);
+        private function addDispatcherListeners():void {
+            AdVPAIDEvents.ALLOWED_EVENTS.map(function (val:String, index:Number, array:Array):void {
+                adEvents.addEventListener(val, dispatchAdEvent);
+            });
+        }
+
+        private function dispatchAdEvent(e:VPAIDEvent):void {
+            dispatchEvent(new VPAIDEvent(e.type));
         }
 
         private function handleAdControllerEvent(e:VPAIDEvent):void {
@@ -51,14 +62,26 @@ package com.sovrn.vpaid {
                     dispatchEvent(new VPAIDEvent(VPAIDEvent.AdError));
                     break;
                 case VPAIDEvent.AdLoaded:
-                    adEvents = _adController.adEventDispatcher;
                     dispatchEvent(new VPAIDEvent(VPAIDEvent.AdLoaded));
+                    break;
+                case VPAIDEvent.AdImpression:
+                    dispatchEvent(new VPAIDEvent(VPAIDEvent.AdImpression));
+                    break;
+                case VPAIDEvent.AdStopped:
+                    dispatchEvent(new VPAIDEvent(VPAIDEvent.AdStopped));
                     break;
             }
         }
 
+        // this ends the session
+        public function adError():void {
+            dispatchEvent(new VPAIDEvent(VPAIDEvent.AdError));
+        }
+
+        // IVPAID methods
+
         public function handshakeVersion(playerVPAIDVersion:String):String {
-            return VPAID_VERSION;
+            return Config.VPAID_VERSION;
         }
 
         public function initAd(width:Number, height:Number, viewMode:String, desiredBitrate:Number, creativeData:String = "", environmentVars:String = ""):void {
@@ -75,48 +98,55 @@ package com.sovrn.vpaid {
         /* ------ getters / setters ----------------------------------------- */
 
         public function get adLinear():Boolean {
-            return true;
+            return _adController.callAdMethod('adLinear', [], true, 'get');
         }
 
         public function get adExpanded():Boolean {
-            return false;
+            return _adController.callAdMethod('adExpanded', [], false, 'get');
         }
 
         public function get adRemainingTime():Number {
-            return -2;
+            return _adController.callAdMethod('adRemainingTime', [], -2, 'get');
         }
 
         public function get adVolume():Number {
-            return 0;
+            return Number(_adController.callAdMethod('adVolume', [], '0', 'get'));
         }
 
-        public function set adVolume(value:Number):void {
+        public function set adVolume(val:Number):void {
+            _adController.callAdMethod('adVolume', [val], null, 'set');
         }
 
         /* ------ layout methods ----------------------------------------- */
 
         public function resizeAd(w:Number, h:Number, viewMode:String):void {
+            _adController.callAdMethod('resizeAd', [w, h, viewMode]);
         }
 
         /* ------  control methods ----------------------------------------- */
 
         public function expandAd():void {
+            _adController.callAdMethod('expandAd');
         }
 
         public function collapseAd():void {
+            _adController.callAdMethod('collapseAd');
         }
 
         public function startAd():void {
+            _adController.callAdMethod('startAd');
         }
 
-        // this was called by the video player. we're done
         public function stopAd():void {
+            _adController.callAdMethod('stopAd');
         }
 
         public function pauseAd():void {
+            _adController.callAdMethod('pauseAd');
         }
 
         public function resumeAd():void {
+            _adController.callAdMethod('resumeAd');
         }
 
         /* --------------------------- */
@@ -124,30 +154,31 @@ package com.sovrn.vpaid {
         /* --------------------------- */
 
         public function skipAd():void {
+            _adController.callAdMethod('skipAd');
         }
 
         public function get adWidth():Number {
-            return this.width;
+            return Number(_adController.callAdMethod('adWidth', [], '0', 'get'));
         }
 
         public function get adHeight():Number {
-            return this.height;
+            return Number(_adController.callAdMethod('adHeight', [], '0', 'get'));
         }
 
         public function get adIcons():Boolean {
-            return false;
+            return _adController.callAdMethod('adIcons', [], false, 'get');
         }
 
         public function get adSkippableState():Boolean {
-            return false;
+            return _adController.callAdMethod('adSkippableState', [], false, 'get');
         }
 
         public function get adDuration():Number {
-            return -2;
+            return _adController.callAdMethod('adDuration', [], -2, 'get');
         }
 
         public function get adCompanions():String {
-            return "";
+            return _adController.callAdMethod('adCompanions', [], " ", 'get');
         }
     }
 }
