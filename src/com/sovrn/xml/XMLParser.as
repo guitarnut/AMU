@@ -49,7 +49,7 @@ package com.sovrn.xml {
                 if(slot >= 0) adData.slot = slot;
 
                 var children:XMLList = this.xml.children();
-                var schema:Object = (children.descendants('MediaFile').length() > 0) ? VASTSchema : WRAPPERSchema;
+                var schema:Object = (children.descendants('VASTAdTagURI').length() > 0) ? WRAPPERSchema : VASTSchema;
 
                 parseXML(children, schema);
 
@@ -176,8 +176,6 @@ package com.sovrn.xml {
         }
 
         private function loadWrapper(uri:String):void {
-            Console.log('loading ' + uri);
-
             if (wrapperCount < wrapperLimit) {
                 try {
                     wrapper = new GETRequest(uri);

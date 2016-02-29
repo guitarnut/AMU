@@ -1,5 +1,6 @@
 package com.sovrn.ads {
     import com.sovrn.constants.Config;
+    import com.sovrn.events.AdManagerEvent;
     import com.sovrn.xml.XMLController;
 
     import flash.display.Sprite;
@@ -9,11 +10,8 @@ package com.sovrn.ads {
 
     public class AdCall extends Sprite {
 
-        private static const VIDEO_MIMES:Array = ['video/mp4','application/shockwave-x'];
-        private static const PROTOCOLS:Array = [];
         private var config:Object;
         private var xmlController:XMLController;
-        private var adsCollection:Array;
 
         public function AdCall(config:Object) {
             this.config = config;
@@ -28,13 +26,16 @@ package com.sovrn.ads {
         private function getSources(e:Event):void {
             xmlController = new XMLController();
             xmlController.addEventListener(Event.COMPLETE, adsReady);
+            xmlController.parse(e.target.data);
         }
 
         private function adsReady(e:Event):void {
             e.stopImmediatePropagation();
-            adsCollection = xmlController.sources;
+            xmlController.removeEventListener(Event.COMPLETE, adsReady);
 
-            dispatchEvent(new Event(Event.COMPLETE));
+            dispatchEvent(new AdManagerEvent(AdManagerEvent.AD_DELIVERY_COMPLETE, {ads: xmlController.sources}));
+
+            xmlController = null;
         }
 
         private function buildURI():String {
@@ -44,10 +45,6 @@ package com.sovrn.ads {
             uri += "?";
 
             return uri;
-        }
-
-        public function get sources():Array {
-            return adsCollection;
         }
 
     }

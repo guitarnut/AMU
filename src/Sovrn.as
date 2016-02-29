@@ -8,15 +8,13 @@ package {
     import com.sovrn.utils.ObjectTools;
     import com.sovrn.utils.StringTools;
     import com.sovrn.vpaid.VPAIDWrapper;
-    import com.sovrn.xml.XMLController;
-    import com.sovrn.xml.XMLParser;
+    import com.sovrn.vpaid.VPAIDWrapper;
 
     import flash.display.Sprite;
-    import flash.events.Event;
-    import flash.net.URLLoader;
-    import flash.net.URLRequest;
     import flash.system.Security;
     import flash.utils.setTimeout;
+
+    import vpaid.VPAIDEvent;
 
     public class Sovrn extends Sprite {
 
@@ -26,6 +24,8 @@ package {
         private var adCall:AdCall;
         private var initCalled:Boolean;
         private var adDeliveryCalled:Boolean;
+        private var sessionStarted:Boolean = false;
+        private var session:int;
 
         public function Sovrn() {
             Security.allowDomain("*");
@@ -39,12 +39,15 @@ package {
 
             initCalled = false;
             adDeliveryCalled = false;
+            session = 1;
 
             vpaid = new VPAIDWrapper();
-            vpaid.addEventListener(AdManagerEvent.INIT_AD_CALLED, serveAds);
+            com.sovrn.vpaid.VPAIDWrapper(vpaid).addEventListener(AdManagerEvent.INIT_AD_CALLED, serveAds);
+            com.sovrn.vpaid.VPAIDWrapper(vpaid).addEventListener(VPAIDEvent.AdError, end);
+            com.sovrn.vpaid.VPAIDWrapper(vpaid).addEventListener(VPAIDEvent.AdStopped, end);
 
             adController = new AdController();
-            vpaid.adController = adController;
+            com.sovrn.vpaid.VPAIDWrapper(vpaid).adController = adController;
 
             Console.log("initializing");
 
@@ -76,8 +79,7 @@ package {
                     getAds();
                 } else {
                     Console.log("invalid config");
-                    vpaid.adError();
-                    end();
+                    com.sovrn.vpaid.VPAIDWrapper(vpaid).fireAdError();
                 }
             } else {
                 setTimeout(function ():void {
@@ -99,28 +101,23 @@ package {
         private function getAds():void {
             adCall = new AdCall(applicationConfig);
             adCall.addEventListener(AdManagerEvent.AD_DELIVERY_COMPLETE, serveAds);
+            adCall.sendRequest();
         }
 
         private function serveAds(e:*):void {
             switch (e.type) {
-                case Event.COMPLETE:
-                        try {
-                            var xml:XMLController = new XMLController();
-                            xml.parse(e.target.data);
-                        } catch (e:Error) {
-                            Console.log(e.toString());
-                        }
-                    break;
                 case AdManagerEvent.AD_DELIVERY_COMPLETE:
                     adCall.removeEventListener(AdManagerEvent.AD_DELIVERY_COMPLETE, serveAds);
+                    adCall = null;
                     adController.ads = e.data.ads;
                     adDeliveryCalled = true;
-                    Console.log("ad delivery complete");
                     break;
                 case AdManagerEvent.INIT_AD_CALLED:
+                    sessionStarted = true;
                     adController.initConfig = e.data;
                     initCalled = true;
                     Console.log("initAd() called\n\n" + ObjectTools.values(e.data));
+                    if (session > 1 && !adDeliveryCalled) getAds();
                     break;
             }
 
@@ -129,10 +126,14 @@ package {
             }
         }
 
-        private function end():void {
-            adController = null;
-            initCalled = false;
-            adDeliveryCalled = false;
+        private function end(e:VPAIDEvent = null):void {
+            if (sessionStarted) {
+                sessionStarted = false;
+                adController.reset();
+                initCalled = false;
+                adDeliveryCalled = false;
+                session++;
+            }
         }
 
     }

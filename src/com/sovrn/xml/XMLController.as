@@ -48,12 +48,12 @@ package com.sovrn.xml {
             sourceCount--;
             XMLParser(e.target).removeEventListener(Event.COMPLETE, storeAd);
             ads.push(XMLParser(e.target).ad);
+
             checkSources();
         }
 
         private function checkSources():void {
             if (sourceCount == 0) {
-                Console.obj(ads);
                 dispatchEvent(new Event(Event.COMPLETE));
             }
         }

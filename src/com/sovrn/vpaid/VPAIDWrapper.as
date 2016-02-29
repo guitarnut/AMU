@@ -76,7 +76,7 @@ package com.sovrn.vpaid {
         }
 
         // this ends the session
-        public function adError():void {
+        public function fireAdError():void {
             dispatchEvent(new VPAIDEvent(VPAIDEvent.AdError));
         }
 

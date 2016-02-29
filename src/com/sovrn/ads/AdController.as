@@ -16,12 +16,18 @@ package com.sovrn.ads {
         private var _initConfig:InitConfigVO;
         private var adInstance:*;
         private var dispatcher:EventDispatcher;
+        private var storedSetCalls:Array;
 
         public function AdController():void {
             dispatcher = new EventDispatcher();
         }
 
         public function set ads(ads:Array):void {
+            Console.log('ad collection ready');
+            Console.obj(ads);
+
+            storedSetCalls = [];
+
             adInstance = null;
 
             adCue = new AdCue(ads);
@@ -72,7 +78,15 @@ package com.sovrn.ads {
 
         public function callAdMethod(method:String, arguments:Array = null, defaultValue:* = null, property:String = ""):* {
             arguments = arguments || [];
-            defaultValue = defaultValue || null;
+
+            if (!adInstance) {
+                if(property == 'get') {
+                    storedSetCalls.push({
+                        method: method,
+                        arguments: [arguments[0]]
+                    })
+                }
+            }
 
             if (adInstance) {
                 try {
@@ -96,7 +110,7 @@ package com.sovrn.ads {
                 }
             } else {
                 Console.log('no ad, returning default: ' + defaultValue);
-                if (defaultValue) return defaultValue;
+                if (defaultValue != null) return defaultValue;
             }
         }
 
@@ -133,6 +147,12 @@ package com.sovrn.ads {
         }
 
         private function logSourceResult(data:Object):void {
+        }
+
+        public function reset():void {
+            adCue = null;
+            adInstance = null;
+            storedSetCalls = [];
         }
 
     }
