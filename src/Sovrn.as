@@ -8,8 +8,12 @@ package {
     import com.sovrn.utils.ObjectTools;
     import com.sovrn.utils.StringTools;
     import com.sovrn.vpaid.VPAIDWrapper;
+    import com.sovrn.xml.XMLParser;
 
     import flash.display.Sprite;
+    import flash.events.Event;
+    import flash.net.URLLoader;
+    import flash.net.URLRequest;
     import flash.system.Security;
     import flash.utils.setTimeout;
 
@@ -94,10 +98,25 @@ package {
         private function getAds():void {
             adCall = new AdCall(applicationConfig);
             adCall.addEventListener(AdManagerEvent.AD_DELIVERY_COMPLETE, serveAds);
+
+            /*
+             temp
+             */
+            var load:URLLoader = new URLLoader();
+            load.addEventListener(Event.COMPLETE, serveAds);
+            load.load(new URLRequest('//ap.rh.lijit.com/addelivery?datafile=vast_mp4'));
         }
 
-        private function serveAds(e:AdManagerEvent):void {
+        private function serveAds(e:*):void {
             switch (e.type) {
+                case Event.COMPLETE:
+                        try {
+                            var xp:XMLParser = new XMLParser(e.target.data);
+
+                        } catch (e:Error) {
+                            Console.log(e.toString());
+                        }
+                    break;
                 case AdManagerEvent.AD_DELIVERY_COMPLETE:
                     adCall.removeEventListener(AdManagerEvent.AD_DELIVERY_COMPLETE, serveAds);
                     adController.ads = e.data.ads;

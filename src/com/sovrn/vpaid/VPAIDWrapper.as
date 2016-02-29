@@ -28,7 +28,9 @@ package com.sovrn.vpaid {
         public function VPAIDWrapper() {
         }
 
+        /* ----------------------------------------- */
         // custom methods
+        /* ----------------------------------------- */
 
         public function set adController(obj:AdController):void {
             _adController = obj;
@@ -78,7 +80,9 @@ package com.sovrn.vpaid {
             dispatchEvent(new VPAIDEvent(VPAIDEvent.AdError));
         }
 
+        /* ----------------------------------------- */
         // IVPAID methods
+        /* ----------------------------------------- */
 
         public function handshakeVersion(playerVPAIDVersion:String):String {
             return Config.VPAID_VERSION;

@@ -14,9 +14,9 @@ package com.sovrn.utils {
             }
         }
 
-        public static function obj(msg:Object):void {
+        public static function obj(msg:*):void {
             if(checkEnabled()) {
-                ExternalInterface.call("console.log", ObjectTools.paramString(msg));
+                ExternalInterface.call("console.log", msg);
             }
         }
 

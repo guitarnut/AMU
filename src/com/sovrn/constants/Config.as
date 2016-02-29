@@ -6,10 +6,15 @@ package com.sovrn.constants {
         public static const SERVER:String = "ap.lijit.com";
 
         public static const ENDPOINT_LOG:String = "vlog";
+
         public static const ENDPOINT_ADS:String = "addelivery";
+
         public static const ENDPOINT_IMPRESSIONS:String = "impressions";
 
         public static const WRAPPER_LIMIT:int = 5;
+
+        public static const TRACKING_PIXEL_LIMIT:int = 5;
+
         public static const SOURCE_LIMIT:int = 5;
 
         public static const COMPATIBLE_MIMES:Array = [
