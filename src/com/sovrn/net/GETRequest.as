@@ -9,7 +9,7 @@ package com.sovrn.net {
 
         private var loader:URLLoader;
         private var uri:String;
-        public var data:*;
+        private var _data:*;
 
         public function GETRequest(uri:String) {
             this.uri = uri;
@@ -22,8 +22,12 @@ package com.sovrn.net {
         }
 
         private function complete(e:Event):void {
-            data = e.target.data;
+            _data = e.target.data;
             dispatchEvent(new Event(Event.COMPLETE));
+        }
+
+        public function get data():* {
+            return _data;
         }
 
         public function cancel():void {

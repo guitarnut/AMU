@@ -1,8 +1,11 @@
 package com.sovrn.model {
 
+    import flash.display.DisplayObjectContainer;
+
     public class ApplicationVO extends Object {
         private var _name:String;
         private var _version:String;
+        private var _view:DisplayObjectContainer;
         private var _parameters:Object;
         private var _stageWidth:int;
         private var _stageHeight:int;
@@ -31,6 +34,14 @@ package com.sovrn.model {
 
         public function get version():String {
             return this._version;
+        }
+
+        public function set view(val:DisplayObjectContainer):void {
+            if (!this._view) this._view = val;
+        }
+
+        public function get view():DisplayObjectContainer {
+            return this._view;
         }
 
         public function set parameters(val:Object):void {

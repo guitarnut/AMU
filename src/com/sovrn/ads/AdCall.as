@@ -20,7 +20,7 @@ package com.sovrn.ads {
         public function sendRequest():void {
             var load:URLLoader = new URLLoader();
             load.addEventListener(Event.COMPLETE, getSources);
-            load.load(new URLRequest('//ap.rh.lijit.com/addelivery?datafile=waterfall'));
+            load.load(new URLRequest('//ap.rh.lijit.com/addelivery?datafile=spotx'));
         }
 
         private function getSources(e:Event):void {

@@ -1,5 +1,7 @@
 package {
 
+// http://ap.rh.lijit.com/www/admanager/Sovrn.swf?zoneid=1&vtid=2&u=3
+
     import com.sovrn.ads.AdCall;
     import com.sovrn.ads.AdController;
     import com.sovrn.events.AdManagerEvent;
@@ -73,6 +75,7 @@ package {
                 applicationConfig.stageHeight = params.vidheight || this.height || 0;
                 applicationConfig.trueLoc = "";
                 applicationConfig.trueDomain = StringTools.domain("");
+                applicationConfig.view = this;
 
                 if (validateConfig()) {
                     Console.log("config complete");
@@ -122,6 +125,8 @@ package {
             }
 
             if (initCalled && adDeliveryCalled) {
+                Console.log('ads loaded, initAd called');
+                adController.view = applicationConfig.view;
                 adController.loadAd();
             }
         }

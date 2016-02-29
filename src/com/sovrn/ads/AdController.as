@@ -2,8 +2,11 @@ package com.sovrn.ads {
 
     import com.sovrn.constants.AdVPAIDEvents;
     import com.sovrn.events.AdCueEvent;
+    import com.sovrn.model.AdVO;
     import com.sovrn.model.InitConfigVO;
     import com.sovrn.utils.Console;
+
+    import flash.display.DisplayObjectContainer;
 
     import flash.display.Sprite;
     import flash.events.EventDispatcher;
@@ -17,6 +20,7 @@ package com.sovrn.ads {
         private var adInstance:*;
         private var dispatcher:EventDispatcher;
         private var storedSetCalls:Array;
+        private var _view:DisplayObjectContainer;
 
         public function AdController():void {
             dispatcher = new EventDispatcher();
@@ -27,16 +31,39 @@ package com.sovrn.ads {
             Console.obj(ads);
 
             storedSetCalls = [];
-
             adInstance = null;
 
-            adCue = new AdCue(ads);
-            adCue.addEventListener(AdCueEvent.AD_CUE_READY, adLoaded);
-            adCue.addEventListener(AdCueEvent.AD_CUE_EMPTY, noAds);
-            adCue.addEventListener(AdCueEvent.AD_CUE_ERROR, sourceFailed);
-            adCue.addEventListener(AdCueEvent.AD_CUE_TIMEOUT, sourceFailed);
-            adCue.addEventListener(AdCueEvent.AD_CUE_IMPRESSION, adImpression);
-            adCue.addEventListener(AdCueEvent.AD_CUE_COMPLETE, adStopped);
+            var adCollection:Array = [];
+
+            ads.map(function(val:AdVO, index:Number, array:Array):void {
+                var ad:VPAIDAd = new VPAIDAd(val);
+                adCollection.push(ad);
+            });
+
+            adCue = new AdCue(adCollection);
+            addListeners(adCue);
+        }
+
+        private function addListeners(cue:AdCue):void {
+            cue.addEventListener(AdCueEvent.AD_CUE_READY, adLoaded);
+            cue.addEventListener(AdCueEvent.AD_CUE_EMPTY, noAds);
+            cue.addEventListener(AdCueEvent.AD_CUE_ERROR, sourceFailed);
+            cue.addEventListener(AdCueEvent.AD_CUE_TIMEOUT, sourceFailed);
+            cue.addEventListener(AdCueEvent.AD_CUE_IMPRESSION, adImpression);
+            cue.addEventListener(AdCueEvent.AD_CUE_COMPLETE, adStopped);
+        }
+
+        private function removeListeners(cue:AdCue):void {
+            cue.removeEventListener(AdCueEvent.AD_CUE_READY, adLoaded);
+            cue.removeEventListener(AdCueEvent.AD_CUE_EMPTY, noAds);
+            cue.removeEventListener(AdCueEvent.AD_CUE_ERROR, sourceFailed);
+            cue.removeEventListener(AdCueEvent.AD_CUE_TIMEOUT, sourceFailed);
+            cue.removeEventListener(AdCueEvent.AD_CUE_IMPRESSION, adImpression);
+            cue.removeEventListener(AdCueEvent.AD_CUE_COMPLETE, adStopped);
+        }
+
+        public function set view(val:DisplayObjectContainer):void {
+            _view = val;
         }
 
         public function set initConfig(obj:Object):void {
@@ -73,7 +100,7 @@ package com.sovrn.ads {
         }
 
         public function loadAd():void {
-            adCue.start(_initConfig);
+            adCue.start(_initConfig, _view);
         }
 
         public function callAdMethod(method:String, arguments:Array = null, defaultValue:* = null, property:String = ""):* {
@@ -150,6 +177,7 @@ package com.sovrn.ads {
         }
 
         public function reset():void {
+            removeListeners(adCue);
             adCue = null;
             adInstance = null;
             storedSetCalls = [];

@@ -2,6 +2,10 @@ package com.sovrn.ads {
     import com.sovrn.events.AdCueEvent;
     import com.sovrn.model.InitConfigVO;
 
+    import flash.display.DisplayObjectContainer;
+
+    import flash.display.DisplayObjectContainer;
+
     import flash.display.Sprite;
 
     public class AdCue extends Sprite {
@@ -9,19 +13,30 @@ package com.sovrn.ads {
         private var ads:Array;
         private var currentAd:IAdInstance;
         private var initConfig:InitConfigVO;
+        private var _view:DisplayObjectContainer;
 
         public function AdCue(ads:Array) {
             this.ads = ads;
         }
 
-        public function start(obj:InitConfigVO):void {
+        public function start(obj:InitConfigVO, view:DisplayObjectContainer):void {
             initConfig = obj;
+            _view = view;
+
             loadAd();
         }
 
         private function loadAd():void {
             if(ads.length > 0) {
                 currentAd = IAdInstance(ads[0]);
+                currentAd.config = initConfig;
+
+                _view.width = 700;
+                _view.height = 450;
+
+                currentAd.view = _view;
+
+                currentAd.load();
             } else {
                 dispatchEvent(new AdCueEvent(AdCueEvent.AD_CUE_EMPTY));
             }
@@ -32,12 +47,9 @@ package com.sovrn.ads {
         }
 
         public function next():void {
+            currentAd.destroy();
             ads.splice(0,1);
             loadAd();
-        }
-
-        private function destroyAd():void {
-
         }
 
         public function stop():void {
