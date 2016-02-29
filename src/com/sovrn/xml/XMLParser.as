@@ -1,10 +1,14 @@
 package com.sovrn.xml {
 
+    import com.sovrn.constants.Config;
     import com.sovrn.constants.VASTSchema;
+    import com.sovrn.constants.WRAPPERSchema;
     import com.sovrn.model.AdVO;
+    import com.sovrn.net.GETRequest;
     import com.sovrn.utils.Console;
 
     import flash.display.Sprite;
+    import flash.events.Event;
 
     import mx.utils.StringUtil;
 
@@ -13,6 +17,8 @@ package com.sovrn.xml {
      */
 
     public class XMLParser extends Sprite {
+        private var wrapperLimit:Number;
+        private var wrapperCount:Number;
         private var xml:XML;
         private var adData:AdVO;
         private var adSystem:Array;
@@ -22,8 +28,11 @@ package com.sovrn.xml {
         private var trackingEvents:Object;
         private var clickTracking:Array;
         private var mediaFiles:Array;
+        private var wrapper:GETRequest;
 
-        public function XMLParser(xml:*) {
+        public function XMLParser() {
+            wrapperLimit = Config.WRAPPER_LIMIT;
+            wrapperCount = 0;
             adSystem = [];
             adTitle = [];
             impressions = [];
@@ -31,26 +40,29 @@ package com.sovrn.xml {
             trackingEvents = {};
             clickTracking = [];
             mediaFiles = [];
-
-            init(xml);
         }
 
-        private function init(xml:*):void {
+        public function init(xml:*, slot:int = -1):void {
             try {
-                xml = new XML(xml).source[0];
+                this.xml = new XML(xml);
                 adData = new AdVO();
+                if(slot >= 0) adData.slot = slot;
 
-                var children:XMLList = xml.children();
-                var schema:Object = (children.descendants('MediaFile').length() > 0) ? VASTSchema.SCHEMA : null;
+                var children:XMLList = this.xml.children();
+                var schema:Object = (children.descendants('MediaFile').length() > 0) ? VASTSchema : WRAPPERSchema;
 
                 parseXML(children, schema);
+
             } catch (e:Error) {
                 throw new Error('could not parse XML: ' + e.toString());
             }
         }
 
-        private function parseXML(children:XMLList, schema:Object):void {
+        private function parseXML(children:XMLList, document:Object):void {
+            var schema:Object = document.SCHEMA;
+
             for (var node:String in schema) {
+
                 if (children.descendants(node).length() > 0) {
                     var nodes:XMLList = children.descendants(node);
                     storeNodeText(nodes, schema[node].attributes);
@@ -62,7 +74,11 @@ package com.sovrn.xml {
                 }
             }
 
-            parsingComplete();
+            if (document.TYPE == VASTSchema.TYPE) {
+                parsingComplete();
+            } else {
+                loadWrapper(children.descendants('VASTAdTagURI')[0]);
+            }
         }
 
         private function storeNodeText(nodes:XMLList, attributes:Array = null):void {
@@ -155,12 +171,35 @@ package com.sovrn.xml {
             }
         }
 
-        private function wrapperLimit():void {
+        private function wrapperLimitReached():void {
             throw new Error('wrapper limit reached');
         }
 
         private function loadWrapper(uri:String):void {
-            init(xml);
+            Console.log('loading ' + uri);
+
+            if (wrapperCount < wrapperLimit) {
+                try {
+                    wrapper = new GETRequest(uri);
+                    wrapper.addEventListener(Event.COMPLETE, wrapperLoaded);
+                    wrapper.sendRequest();
+                } catch (e:Error) {
+                    wrapper.removeEventListener(Event.COMPLETE, wrapperLoaded);
+                    wrapper = null;
+                }
+            } else {
+                wrapperLimitReached();
+            }
+        }
+
+        private function wrapperLoaded(e:Event):void {
+            e.stopImmediatePropagation();
+
+            wrapper.removeEventListener(Event.COMPLETE, wrapperLoaded);
+            wrapper = null;
+            wrapperCount++;
+
+            init(e.target.data);
         }
 
         private function parsingComplete():void {
@@ -172,7 +211,11 @@ package com.sovrn.xml {
             adData.clickTracking = clickTracking;
             adData.mediaFiles = mediaFiles;
 
-            Console.obj(adData);
+            dispatchEvent(new Event(Event.COMPLETE));
+        }
+
+        public function get ad():AdVO {
+            return adData;
         }
     }
 

@@ -8,6 +8,7 @@ package {
     import com.sovrn.utils.ObjectTools;
     import com.sovrn.utils.StringTools;
     import com.sovrn.vpaid.VPAIDWrapper;
+    import com.sovrn.xml.XMLController;
     import com.sovrn.xml.XMLParser;
 
     import flash.display.Sprite;
@@ -98,21 +99,14 @@ package {
         private function getAds():void {
             adCall = new AdCall(applicationConfig);
             adCall.addEventListener(AdManagerEvent.AD_DELIVERY_COMPLETE, serveAds);
-
-            /*
-             temp
-             */
-            var load:URLLoader = new URLLoader();
-            load.addEventListener(Event.COMPLETE, serveAds);
-            load.load(new URLRequest('//ap.rh.lijit.com/addelivery?datafile=vast_mp4'));
         }
 
         private function serveAds(e:*):void {
             switch (e.type) {
                 case Event.COMPLETE:
                         try {
-                            var xp:XMLParser = new XMLParser(e.target.data);
-
+                            var xml:XMLController = new XMLController();
+                            xml.parse(e.target.data);
                         } catch (e:Error) {
                             Console.log(e.toString());
                         }

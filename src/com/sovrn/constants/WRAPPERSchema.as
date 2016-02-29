@@ -1,15 +1,18 @@
 package com.sovrn.constants {
 
-    public class VASTSchema {
+    public class WRAPPERSchema {
 
-        public static const TYPE:String = 'VAST';
+        public static const TYPE:String = 'Wrapper';
 
         public static const SCHEMA:Object = {
             Ad: {
                 required: true,
                 attributes: ['id']
             },
-            InLine: {
+            Wrapper: {
+                required: true
+            },
+            VASTAdTagURI: {
                 required: true
             },
             AdSystem: {
@@ -26,9 +29,6 @@ package com.sovrn.constants {
             Linear: {
                 required: true
             },
-            Duration: {
-                required: true
-            },
             Tracking: {
                 required: false,
                 attributes: ['event']
@@ -41,10 +41,6 @@ package com.sovrn.constants {
             },
             ClickTracking: {
                 required: false
-            },
-            MediaFile: {
-                required: true,
-                attributes: ['id', 'delivery', 'type', 'width', 'height']
             },
             cb: {
                 required: false

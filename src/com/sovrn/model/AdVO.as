@@ -3,6 +3,7 @@ package com.sovrn.model {
     public class AdVO {
 
         private var _adType:String;
+        private var _slot:int;
         private var _VASTVersion:String;
         private var _adSystem:Array;
         private var _adTitle:Array;
@@ -31,6 +32,14 @@ package com.sovrn.model {
 
         public function get adType():String {
             return _adType;
+        }
+
+        public function set slot(val:int):void {
+            if(!_slot) _slot = val;
+        }
+
+        public function get slot():int {
+            return _slot;
         }
 
         public function set VASTVersion(val:String):void {
