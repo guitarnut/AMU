@@ -1,4 +1,7 @@
 package com.sovrn.events {
+
+    import com.sovrn.utils.Console;
+
     import flash.events.Event;
 
     public class AdManagerEvent extends Event {
@@ -8,8 +11,10 @@ package com.sovrn.events {
 
         private var _data:Object;
 
-        public function AdManagerEvent(type:String, data:Object = null, bubbles:Boolean = false, cancelable:Boolean = true):void {
-            super(type, bubbles, cancelable);
+        public function AdManagerEvent(eventType:String, data:Object = null, bubbles:Boolean = false, cancelable:Boolean = true):void {
+            super(eventType, bubbles, cancelable);
+
+            Console.log('AdManagerEvent: ' + eventType);
 
             this._data = data;
         }

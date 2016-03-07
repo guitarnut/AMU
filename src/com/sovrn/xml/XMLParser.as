@@ -101,7 +101,7 @@ package com.sovrn.xml {
                     values[val] = String(node.attribute(val));
                 } else {
                     Console.log('node missing attribute: ' + val);
-                    throw new Error('node ' + node.name() + ' missing required attribute ' + val);
+                    //throw new Error('node ' + node.name() + ' missing required attribute ' + val);
                 }
             });
 

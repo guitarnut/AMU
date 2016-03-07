@@ -44,7 +44,7 @@ package com.sovrn.constants {
             },
             MediaFile: {
                 required: true,
-                attributes: ['id', 'delivery', 'type', 'width', 'height']
+                attributes: ['id', 'delivery', 'type', 'width', 'height', 'apiFramework']
             },
             cb: {
                 required: false

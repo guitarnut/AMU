@@ -1,8 +1,10 @@
 package com.sovrn.ads {
-    import com.sovrn.events.AdCueEvent;
-    import com.sovrn.model.InitConfigVO;
 
-    import flash.display.DisplayObjectContainer;
+    import com.sovrn.events.AdCueEvent;
+    import com.sovrn.events.AdInstanceEvent;
+    import com.sovrn.model.InitConfigVO;
+    import com.sovrn.utils.Console;
+    import com.sovrn.view.Canvas;
 
     import flash.display.DisplayObjectContainer;
 
@@ -13,13 +15,13 @@ package com.sovrn.ads {
         private var ads:Array;
         private var currentAd:IAdInstance;
         private var initConfig:InitConfigVO;
-        private var _view:DisplayObjectContainer;
+        private var _view:Canvas;
 
         public function AdCue(ads:Array) {
             this.ads = ads;
         }
 
-        public function start(obj:InitConfigVO, view:DisplayObjectContainer):void {
+        public function start(obj:InitConfigVO, view:Canvas):void {
             initConfig = obj;
             _view = view;
 
@@ -27,28 +29,49 @@ package com.sovrn.ads {
         }
 
         private function loadAd():void {
-            if(ads.length > 0) {
-                currentAd = IAdInstance(ads[0]);
-                currentAd.config = initConfig;
+            if (ads.length > 0) {
 
-                _view.width = 700;
-                _view.height = 450;
+                try {
+                    _view.resize(initConfig.width, initConfig.height);
 
-                currentAd.view = _view;
+                    currentAd = IAdInstance(ads[0]);
+                    addListeners(currentAd);
 
-                currentAd.load();
+                    currentAd.config = initConfig;
+                    currentAd.view = _view;
+                    currentAd.load();
+                } catch (e:Error) {
+                    Console.log('ad instance error: ' + e.toString());
+                    next();
+                }
+
             } else {
                 dispatchEvent(new AdCueEvent(AdCueEvent.AD_CUE_EMPTY));
             }
         }
 
-        private function adReady():void {
-            dispatchEvent(new AdCueEvent(AdCueEvent.AD_CUE_READY));
+        private function addListeners(ad:IAdInstance):void {
+            DisplayObjectContainer(ad).addEventListener(AdInstanceEvent.AdLoaded, adReady);
+            DisplayObjectContainer(ad).addEventListener(AdInstanceEvent.AdError, adError);
+        }
+
+        private function removeListeners(ad:IAdInstance):void {
+            DisplayObjectContainer(ad).removeEventListener(AdInstanceEvent.AdLoaded, adReady);
+            DisplayObjectContainer(ad).removeEventListener(AdInstanceEvent.AdError, adError);
+        }
+
+        private function adReady(e:AdInstanceEvent):void {
+            dispatchEvent(new AdCueEvent(AdCueEvent.AD_CUE_READY, {vpaid: currentAd.ad}));
+        }
+
+        private function adError(e:AdInstanceEvent):void {
+            next();
         }
 
         public function next():void {
-            currentAd.destroy();
-            ads.splice(0,1);
+            removeListeners(currentAd);
+            //currentAd.destroy();
+            ads.splice(0, 1);
             loadAd();
         }
 

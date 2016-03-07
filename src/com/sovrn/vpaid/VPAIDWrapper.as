@@ -4,6 +4,7 @@ package com.sovrn.vpaid {
     import com.sovrn.constants.AdVPAIDEvents;
     import com.sovrn.constants.Config;
     import com.sovrn.events.AdManagerEvent;
+    import com.sovrn.utils.Console;
 
     import flash.display.Sprite;
     import flash.events.EventDispatcher;
@@ -13,12 +14,12 @@ package com.sovrn.vpaid {
 
     /*
 
-    The VPAID Wrapper does not know or care if an ad is available. It relays method calls from the video player
-    to the ad controller and passes on approved VPAID events from the event dispatcher when it receives them.
-    No state is maintained in this class. It receives a single instance of the ad controller and the
-    ad controller's event dispatcher.
+     The VPAID Wrapper does not know or care if an ad is available. It relays method calls from the video player
+     to the ad controller and passes on approved VPAID events from the event dispatcher when it receives them.
+     No state is maintained in this class. It receives a single instance of the ad controller and the
+     ad controller's event dispatcher.
 
-    */
+     */
 
     public class VPAIDWrapper extends Sprite implements IVPAID {
 
@@ -32,7 +33,7 @@ package com.sovrn.vpaid {
         // custom methods
         /* ----------------------------------------- */
 
-        public function set adController(obj:AdController):void {
+        public function set controller(obj:AdController):void {
             _adController = obj;
             adEvents = _adController.adEventDispatcher;
             addControllerListeners();
@@ -57,7 +58,7 @@ package com.sovrn.vpaid {
         }
 
         private function handleAdControllerEvent(e:VPAIDEvent):void {
-            e.stopImmediatePropagation();
+            Console.log('controller: ' + e.type);
 
             switch (e.type) {
                 case VPAIDEvent.AdError:
@@ -73,6 +74,8 @@ package com.sovrn.vpaid {
                     dispatchEvent(new VPAIDEvent(VPAIDEvent.AdStopped));
                     break;
             }
+
+            e.stopImmediatePropagation();
         }
 
         // this ends the session

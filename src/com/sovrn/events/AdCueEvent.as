@@ -1,4 +1,7 @@
 package com.sovrn.events {
+
+    import com.sovrn.utils.Console;
+
     import flash.events.Event;
 
     public class AdCueEvent extends Event {
@@ -12,8 +15,10 @@ package com.sovrn.events {
 
         private var _data:Object;
 
-        public function AdCueEvent(type:String, data:Object = null, bubbles:Boolean = false, cancelable:Boolean = true):void {
-            super(type, bubbles, cancelable);
+        public function AdCueEvent(eventType:String, data:Object = null, bubbles:Boolean = false, cancelable:Boolean = true):void {
+            super(eventType, bubbles, cancelable);
+
+            Console.log('AdCueEvent: ' + eventType);
 
             this._data = data;
         }

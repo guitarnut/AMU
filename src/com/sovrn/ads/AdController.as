@@ -5,8 +5,7 @@ package com.sovrn.ads {
     import com.sovrn.model.AdVO;
     import com.sovrn.model.InitConfigVO;
     import com.sovrn.utils.Console;
-
-    import flash.display.DisplayObjectContainer;
+    import com.sovrn.view.Canvas;
 
     import flash.display.Sprite;
     import flash.events.EventDispatcher;
@@ -20,7 +19,7 @@ package com.sovrn.ads {
         private var adInstance:*;
         private var dispatcher:EventDispatcher;
         private var storedSetCalls:Array;
-        private var _view:DisplayObjectContainer;
+        private var _view:Canvas;
 
         public function AdController():void {
             dispatcher = new EventDispatcher();
@@ -62,7 +61,7 @@ package com.sovrn.ads {
             cue.removeEventListener(AdCueEvent.AD_CUE_COMPLETE, adStopped);
         }
 
-        public function set view(val:DisplayObjectContainer):void {
+        public function set view(val:Canvas):void {
             _view = val;
         }
 
@@ -148,6 +147,7 @@ package com.sovrn.ads {
         private function adLoaded(e:AdCueEvent):void {
             adInstance = e.data.vpaid;
             addAdEvents();
+            dispatchEvent(new VPAIDEvent(VPAIDEvent.AdLoaded));
         }
 
         private function noAds(e:AdCueEvent):void {

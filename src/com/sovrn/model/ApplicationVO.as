@@ -1,15 +1,17 @@
 package com.sovrn.model {
 
+    import com.sovrn.view.Canvas;
+
     import flash.display.DisplayObjectContainer;
 
     public class ApplicationVO extends Object {
         private var _name:String;
         private var _version:String;
-        private var _view:DisplayObjectContainer;
+        private var _view:Canvas;
         private var _parameters:Object;
-        private var _stageWidth:int;
-        private var _stageHeight:int;
-        private var _zoneId:int;
+        private var _stageWidth:Number;
+        private var _stageHeight:Number;
+        private var _zoneId:Number;
         private var _publisherId:String;
         private var _publisherLoc:String;
         private var _trueLoc:String;
@@ -36,11 +38,11 @@ package com.sovrn.model {
             return this._version;
         }
 
-        public function set view(val:DisplayObjectContainer):void {
+        public function set view(val:Canvas):void {
             if (!this._view) this._view = val;
         }
 
-        public function get view():DisplayObjectContainer {
+        public function get view():Canvas {
             return this._view;
         }
 
@@ -52,27 +54,27 @@ package com.sovrn.model {
             return this._parameters;
         }
 
-        public function set stageWidth(val:int):void {
+        public function set stageWidth(val:Number):void {
             if (!this._stageWidth)this._stageWidth = val;
         }
 
-        public function get stageWidth():int {
+        public function get stageWidth():Number {
             return this._stageWidth;
         }
 
-        public function set stageHeight(val:int):void {
+        public function set stageHeight(val:Number):void {
             if (!this._stageHeight)this._stageHeight = val;
         }
 
-        public function get stageHeight():int {
+        public function get stageHeight():Number {
             return this._stageHeight;
         }
 
-        public function set zoneId(val:int):void {
+        public function set zoneId(val:Number):void {
             if (!this._zoneId)this._zoneId = val;
         }
 
-        public function get zoneId():int {
+        public function get zoneId():Number {
             return this._zoneId;
         }
 

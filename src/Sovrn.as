@@ -1,6 +1,7 @@
 package {
 
 // http://ap.rh.lijit.com/www/admanager/Sovrn.swf?zoneid=1&vtid=2&u=3
+// http://ap.rh.lijit.com/addelivery?datafile=admanager
 
     import com.sovrn.ads.AdCall;
     import com.sovrn.ads.AdController;
@@ -9,10 +10,15 @@ package {
     import com.sovrn.utils.Console;
     import com.sovrn.utils.ObjectTools;
     import com.sovrn.utils.StringTools;
-    import com.sovrn.vpaid.VPAIDWrapper;
+    import com.sovrn.view.Canvas;
     import com.sovrn.vpaid.VPAIDWrapper;
 
     import flash.display.Sprite;
+    import flash.display.StageAlign;
+    import flash.display.StageScaleMode;
+    import flash.events.ErrorEvent;
+    import flash.events.Event;
+    import flash.events.UncaughtErrorEvent;
     import flash.system.Security;
     import flash.utils.setTimeout;
 
@@ -28,20 +34,17 @@ package {
         private var adDeliveryCalled:Boolean;
         private var sessionStarted:Boolean = false;
         private var session:int;
+        private var view:Canvas;
 
         public function Sovrn() {
             Security.allowDomain("*");
             Security.allowInsecureDomain("*");
 
             try {
-                //loaderInfo.uncaughtErrorEvents.addEventListener(UncaughtErrorEvent.UNCAUGHT_ERROR, uncaughtErrorHandler);
+                loaderInfo.uncaughtErrorEvents.addEventListener(UncaughtErrorEvent.UNCAUGHT_ERROR, uncaughtErrorHandler);
             } catch (e:Error) {
-                //
+                // no loader info object available?
             }
-
-            initCalled = false;
-            adDeliveryCalled = false;
-            session = 1;
 
             vpaid = new VPAIDWrapper();
             com.sovrn.vpaid.VPAIDWrapper(vpaid).addEventListener(AdManagerEvent.INIT_AD_CALLED, serveAds);
@@ -49,15 +52,55 @@ package {
             com.sovrn.vpaid.VPAIDWrapper(vpaid).addEventListener(VPAIDEvent.AdStopped, end);
 
             adController = new AdController();
-            com.sovrn.vpaid.VPAIDWrapper(vpaid).adController = adController;
+            com.sovrn.vpaid.VPAIDWrapper(vpaid).controller = adController;
+
+            view = new Canvas();
+            view.x = 0;
+            view.y = 0;
+            view.show();
+            addChild(view);
+
+            addEventListener(Event.ADDED_TO_STAGE, setupView);
+
+            initCalled = false;
+            adDeliveryCalled = false;
+            session = 1;
 
             Console.log("initializing");
 
             config();
         }
 
+        private function uncaughtErrorHandler(e:UncaughtErrorEvent):void {
+            Console.log('UncaughtError:');
+
+            var message:String;
+
+            if (e.error is Error) {
+                message = Error(e.error).message;
+            }
+            else if (e.error is ErrorEvent) {
+                message = ErrorEvent(e.error).text;
+            }
+            else {
+                message = e.error.toString();
+            }
+
+            Console.log(message);
+        }
+
         public function getVPAID():* {
+            Console.log('getVPAID() called');
             return vpaid;
+        }
+
+        private function setupView(e:Event):void {
+            removeEventListener(Event.ADDED_TO_STAGE, setupView);
+
+            this.stage.align = StageAlign.TOP_LEFT;
+            this.stage.scaleMode = StageScaleMode.NO_SCALE;
+
+            if (applicationConfig) view.resize(applicationConfig.stageWidth, applicationConfig.stageHeight);
         }
 
         private function config():void {
@@ -65,17 +108,17 @@ package {
                 var params:Object = this.loaderInfo.parameters;
 
                 applicationConfig = new ApplicationVO();
-                applicationConfig.parameters = params;
-                applicationConfig.publisherId = params.u || params.sovrnid;
-                applicationConfig.publisherLoc = params.loc;
-                applicationConfig.vtid = params.vtid;
-                applicationConfig.zoneId = params.zoneid;
-                applicationConfig.server = params.ljt;
+                applicationConfig.parameters = params || {};
+                applicationConfig.publisherId = params.u || params.sovrnid || "";
+                applicationConfig.publisherLoc = params.loc || "";
+                applicationConfig.vtid = params.vtid || "";
+                applicationConfig.zoneId = params.zoneid || 0;
+                applicationConfig.server = params.ljt || "";
                 applicationConfig.stageWidth = params.vidwidth || this.width || 0;
                 applicationConfig.stageHeight = params.vidheight || this.height || 0;
                 applicationConfig.trueLoc = "";
                 applicationConfig.trueDomain = StringTools.domain("");
-                applicationConfig.view = this;
+                applicationConfig.view = view;
 
                 if (validateConfig()) {
                     Console.log("config complete");
@@ -92,13 +135,9 @@ package {
         }
 
         private function validateConfig():Boolean {
-            var valid:Boolean = true;
-
-            valid = Boolean(applicationConfig.zoneId != 0) &&
+            return Boolean(applicationConfig.zoneId != 0) &&
                     Boolean(applicationConfig.vtid != null) &&
                     Boolean(applicationConfig.publisherId != null);
-
-            return valid;
         }
 
         private function getAds():void {
@@ -119,24 +158,27 @@ package {
                     sessionStarted = true;
                     adController.initConfig = e.data;
                     initCalled = true;
-                    Console.log("initAd() called\n\n" + ObjectTools.values(e.data));
+                    Console.log("initAd() called -\n" + ObjectTools.values(e.data));
                     if (session > 1 && !adDeliveryCalled) getAds();
                     break;
             }
 
             if (initCalled && adDeliveryCalled) {
-                Console.log('ads loaded, initAd called');
+                Console.log('sources loaded and initAd() called, starting VPAID');
                 adController.view = applicationConfig.view;
                 adController.loadAd();
             }
         }
 
         private function end(e:VPAIDEvent = null):void {
+            Console.log('end() called');
+
             if (sessionStarted) {
                 sessionStarted = false;
                 adController.reset();
                 initCalled = false;
                 adDeliveryCalled = false;
+                view.hide();
                 session++;
             }
         }

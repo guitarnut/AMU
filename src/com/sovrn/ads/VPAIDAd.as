@@ -1,18 +1,15 @@
 package com.sovrn.ads {
 
     import com.sovrn.constants.AdTypes;
+    import com.sovrn.events.AdInstanceEvent;
     import com.sovrn.model.AdVO;
     import com.sovrn.model.InitConfigVO;
     import com.sovrn.net.FileRequest;
     import com.sovrn.utils.Console;
-
-    import flash.display.DisplayObjectContainer;
+    import com.sovrn.view.Canvas;
 
     import flash.display.Sprite;
-
     import flash.events.Event;
-
-    import vpaid.IVPAID;
 
     import vpaid.VPAIDEvent;
 
@@ -22,7 +19,8 @@ package com.sovrn.ads {
         private var _ad:*;
         private var _data:AdVO;
         private var _config:InitConfigVO;
-        private var _view:DisplayObjectContainer;
+        private var _view:Canvas;
+        private var adObject:*;
         private var adLoader:FileRequest;
 
         public function VPAIDAd(data:AdVO):void {
@@ -30,46 +28,76 @@ package com.sovrn.ads {
         }
 
         public function load():void {
+            Console.log('loading ' + _data.mediaFiles[0].MediaFile);
+
             adLoader = new FileRequest(_data.mediaFiles[0].MediaFile);
             adLoader.addEventListener(Event.COMPLETE, adLoaded);
             adLoader.sendRequest();
         }
 
         private function adLoaded(e:Event):void {
-            _ad = adLoader.data.getVPAID() || adLoader.data;
-            _view.addChild(_ad);
+            e.stopImmediatePropagation();
+
+            adObject = adLoader.data;
+            adObject.x = 0;
+            adObject.y = 0;
+
+            _view.addChild(adObject);
+
+            if (adObject.hasOwnProperty('getVPAID')) {
+                Console.log(adObject.toString() + ' VPAID found');
+                _ad = adObject.getVPAID();
+            } else {
+                Console.log(adObject.toString() + ' found');
+                _ad = adObject;
+            }
+
             addVPAIDEvents(_ad);
             initAd();
         }
 
         private function addVPAIDEvents(adInstance:*):void {
-            _ad.addEventListener(VPAIDEvent.AdLoaded, handleVPAIDEvent);
-            _ad.addEventListener(VPAIDEvent.AdError, handleVPAIDEvent);
+            try {
+                adInstance.addEventListener(VPAIDEvent.AdLoaded, handleVPAIDEvent);
+                adInstance.addEventListener(VPAIDEvent.AdError, handleVPAIDEvent);
+            } catch (e:Error) {
+                Console.log(e.toString());
+            }
+
         }
 
         private function removeVPAIDEvents(adInstance:*):void {
-            _ad.removeEventListener(VPAIDEvent.AdLoaded, handleVPAIDEvent);
-            _ad.removeEventListener(VPAIDEvent.AdError, handleVPAIDEvent);
+            adInstance.removeEventListener(VPAIDEvent.AdLoaded, handleVPAIDEvent);
+            adInstance.removeEventListener(VPAIDEvent.AdError, handleVPAIDEvent);
         }
 
         private function initAd():void {
-            _ad.initAd(
-                    _config.width,
-                    _config.height,
-                    _config.viewMode,
-                    _config.desiredBitrate,
-                    _data.adParameters,
-                    _config.environmentVars
-            );
+            try {
+                _ad.initAd(
+                        _config.width,
+                        _config.height,
+                        _config.viewMode,
+                        _config.desiredBitrate,
+                        _data.adParameters,
+                        _config.environmentVars
+                );
+            } catch (e:Error) {
+                handleVPAIDEvent(new VPAIDEvent(VPAIDEvent.AdError));
+            }
+
         }
 
-        private function handleVPAIDEvent(e:VPAIDEvent):void {
-            Console.log('VPAID Ad: ' + e.type);
+        private function handleVPAIDEvent(e:Event):void {
+            e.stopImmediatePropagation();
+
+            Console.log('VPAID Ad Fired Event: ' + e.type);
 
             switch (e.type) {
                 case VPAIDEvent.AdLoaded:
+                    dispatchEvent(new AdInstanceEvent(AdInstanceEvent.AdLoaded));
                     break;
                 case VPAIDEvent.AdError:
+                    dispatchEvent(new AdInstanceEvent(AdInstanceEvent.AdError));
                     break;
                 default:
                     break;
@@ -77,17 +105,18 @@ package com.sovrn.ads {
         }
 
         public function destroy():void {
-            adLoader.cancel();
+            _view.removeChild(adObject);
             removeVPAIDEvents(_ad);
-            _view.removeChild(_ad);
+            adLoader.cancel();
             _ad = null;
+            adObject = null;
         }
 
         public function set config(initConfig:InitConfigVO):void {
             _config = initConfig;
         }
 
-        public function set view(val:DisplayObjectContainer):void {
+        public function set view(val:Canvas):void {
             _view = val;
         }
 

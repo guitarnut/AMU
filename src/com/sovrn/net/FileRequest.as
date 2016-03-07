@@ -1,7 +1,5 @@
 package com.sovrn.net {
 
-    import com.sovrn.utils.Console;
-
     import flash.display.Loader;
     import flash.display.Sprite;
     import flash.events.Event;
@@ -13,11 +11,13 @@ package com.sovrn.net {
     import flash.net.URLRequest;
     import flash.system.ApplicationDomain;
     import flash.system.LoaderContext;
+    import flash.system.SecurityDomain;
 
     public class FileRequest extends Sprite implements IRequest {
 
         private var uri:String;
         private var loader:Loader;
+        private var loaderInfoReference:*;
         private var _data:*;
 
         public function FileRequest(uri:String) {
@@ -25,13 +25,16 @@ package com.sovrn.net {
         }
 
         public function sendRequest():void {
-            var appDomain:ApplicationDomain = new ApplicationDomain();
-            var context:LoaderContext = new LoaderContext(false, appDomain);
+            var context:LoaderContext = new LoaderContext(false, new ApplicationDomain(ApplicationDomain.currentDomain));
+            context.securityDomain = SecurityDomain.currentDomain;
 
             loader = new Loader();
+            loaderInfoReference = loader.contentLoaderInfo;
+
             addListeners(loader);
 
             loader.load(new URLRequest(uri), context);
+            //loader.load(new URLRequest(uri));
         }
 
         private function addListeners(target:IEventDispatcher):void {
@@ -63,8 +66,11 @@ package com.sovrn.net {
         }
 
         private function complete(e:Event):void {
+            e.stopImmediatePropagation();
             cleanup(loader);
-            _data = e.target.content;
+
+            _data = loaderInfoReference.content;
+
             dispatchEvent(new Event(Event.COMPLETE));
         }
 
@@ -75,7 +81,9 @@ package com.sovrn.net {
         public function cancel():void {
             if (loader) {
                 loader.unloadAndStop(true);
+                _data = null;
                 loader = null;
+                loaderInfoReference = null;
             }
         }
 

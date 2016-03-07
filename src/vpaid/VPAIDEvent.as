@@ -1,5 +1,7 @@
 package vpaid {
 
+    import com.sovrn.utils.Console;
+
     import flash.events.Event;
 
     public class VPAIDEvent extends Event {
@@ -49,8 +51,12 @@ package vpaid {
 
         public var _data:Object;
 
-        public function VPAIDEvent(type:String, data:Object = null, bubbles:Boolean = false, cancelable:Boolean = false) {
-            super(type, bubbles, cancelable);
+        public function VPAIDEvent(eventType:String, data:Object = null, bubbles:Boolean = true, cancelable:Boolean = false) {
+            super(eventType, bubbles, cancelable);
+
+            Console.log('VPAIDEvent: ' + eventType);
+
+            _data = data;
         }
 
         public function get data():Object {

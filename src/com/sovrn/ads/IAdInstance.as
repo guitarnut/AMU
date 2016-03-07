@@ -1,8 +1,9 @@
 package com.sovrn.ads {
 
     import com.sovrn.model.InitConfigVO;
+    import com.sovrn.view.Canvas;
 
-    import flash.display.DisplayObjectContainer;
+    import flash.display.Sprite;
 
     public interface IAdInstance {
 
@@ -18,7 +19,7 @@ package com.sovrn.ads {
 
         function set config(val:InitConfigVO):void;
 
-        function set view(val:DisplayObjectContainer):void;
+        function set view(val:Canvas):void;
 
     }
 
