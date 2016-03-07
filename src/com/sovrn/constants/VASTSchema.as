@@ -7,13 +7,16 @@ package com.sovrn.constants {
         public static const SCHEMA:Object = {
             Ad: {
                 required: true,
-                attributes: ['id']
+                attributes: [
+                    {
+                        name: 'id',
+                        required: false
+                    }]
             },
             InLine: {
                 required: true
             },
-            AdSystem: {
-            },
+            AdSystem: {},
             AdTitle: {
                 required: false
             },
@@ -31,7 +34,12 @@ package com.sovrn.constants {
             },
             Tracking: {
                 required: false,
-                attributes: ['event']
+                attributes: [
+                    {
+                        name: 'event',
+                        required: false
+                    }
+                ]
             },
             AdParameters: {
                 required: false
@@ -44,7 +52,32 @@ package com.sovrn.constants {
             },
             MediaFile: {
                 required: true,
-                attributes: ['id', 'delivery', 'type', 'width', 'height', 'apiFramework']
+                attributes: [
+                    {
+                        name: 'id',
+                        required: false
+                    },
+                    {
+                        name: 'delivery',
+                        required: false
+                    },
+                    {
+                        name: 'type',
+                        required: false
+                    },
+                    {
+                        name: 'width',
+                        required: false
+                    },
+                    {
+                        name: 'height',
+                        required: false
+                    },
+                    {
+                        name: 'apiFramework',
+                        required: false
+                    }
+                ]
             },
             cb: {
                 required: false

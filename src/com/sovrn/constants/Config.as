@@ -9,16 +9,17 @@ package com.sovrn.constants {
 
         public static const ENDPOINT_ADS:String = "addelivery";
 
-        public static const ENDPOINT_IMPRESSIONS:String = "impressions";
-
         public static const WRAPPER_LIMIT:int = 5;
 
         public static const TRACKING_PIXEL_LIMIT:int = 5;
 
         public static const SOURCE_LIMIT:int = 5;
 
+        public static const VIDEO_BUFFER_TIME:Number = 5;
+
         public static const COMPATIBLE_MIMES:Array = [
             'video/mp4',
+            'video/flv',
             'application/vpaid',
             'application/swf'
         ];

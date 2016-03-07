@@ -70,9 +70,6 @@ package com.sovrn.vpaid {
                 case VPAIDEvent.AdLoaded:
                     dispatchEvent(new VPAIDEvent(VPAIDEvent.AdLoaded));
                     break;
-                //case VPAIDEvent.AdImpression:
-                    //dispatchEvent(new VPAIDEvent(VPAIDEvent.AdImpression));
-                    //break;
                 case VPAIDEvent.AdStopped:
                     dispatchEvent(new VPAIDEvent(VPAIDEvent.AdStopped));
                     break;

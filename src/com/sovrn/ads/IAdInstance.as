@@ -3,8 +3,6 @@ package com.sovrn.ads {
     import com.sovrn.model.InitConfigVO;
     import com.sovrn.view.Canvas;
 
-    import flash.display.Sprite;
-
     public interface IAdInstance {
 
         function load():void;

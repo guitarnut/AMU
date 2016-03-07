@@ -1,13 +1,17 @@
 package com.sovrn.constants {
 
-    public class WRAPPERSchema {
+    public class WrapperSchema {
 
         public static const TYPE:String = 'Wrapper';
 
         public static const SCHEMA:Object = {
             Ad: {
                 required: true,
-                attributes: ['id']
+                attributes: [
+                    {
+                        name: 'id',
+                        required: false
+                    }]
             },
             Wrapper: {
                 required: true
@@ -31,7 +35,11 @@ package com.sovrn.constants {
             },
             Tracking: {
                 required: false,
-                attributes: ['event']
+                attributes: [
+                    {
+                        name: 'event',
+                        required: false
+                    }]
             },
             AdParameters: {
                 required: false

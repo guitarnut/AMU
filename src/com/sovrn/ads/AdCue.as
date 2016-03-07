@@ -81,6 +81,10 @@ package com.sovrn.ads {
             }));
         }
 
+        /* ------------------------
+         ad instance possible results
+         ------------------------ */
+
         private function adError(e:AdInstanceEvent):void {
             dispatchEvent(new AdCueEvent(AdCueEvent.AD_CUE_ERROR, {
                 ad_data: ads[0].data

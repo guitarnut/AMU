@@ -32,6 +32,14 @@ package com.sovrn.constants {
             VPAIDEvent.AdDurationChange,
             VPAIDEvent.AdInteraction
         ];
+
+        public static const BLOCKED_EVENTS:Array = [
+            VPAIDEvent.AdLoaded,
+            VPAIDEvent.AdStopped,
+            VPAIDEvent.AdSkipped,
+            VPAIDEvent.AdUserAcceptInvitation,
+            VPAIDEvent.AdError
+        ];
     }
 
 }

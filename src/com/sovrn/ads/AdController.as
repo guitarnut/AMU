@@ -95,6 +95,10 @@ package com.sovrn.ads {
             AdVPAIDEvents.ALLOWED_EVENTS.map(function (val:String, index:Number, array:Array):void {
                 adInstance.addEventListener(val, dispatchAdEvent);
             });
+
+            AdVPAIDEvents.BLOCKED_EVENTS.map(function (val:String, index:Number, array:Array):void {
+                adInstance.addEventListener(val, handleAdEvent);
+            });
         }
 
         private function removeAdEvents():void {
@@ -102,11 +106,19 @@ package com.sovrn.ads {
                 AdVPAIDEvents.ALLOWED_EVENTS.map(function (val:String, index:Number, array:Array):void {
                     adInstance.removeEventListener(val, dispatchAdEvent);
                 });
+
+                AdVPAIDEvents.BLOCKED_EVENTS.map(function (val:String, index:Number, array:Array):void {
+                    adInstance.removeEventListener(val, handleAdEvent);
+                });
             }
         }
 
         private function dispatchAdEvent(e:Event):void {
             dispatcher.dispatchEvent(new VPAIDEvent(e.type));
+            handleAdEvent(e);
+        }
+
+        private function handleAdEvent(e:Event):void {
             trackEvent(e.type);
         }
 
@@ -117,11 +129,35 @@ package com.sovrn.ads {
         private function trackEvent(event:String):void {
             switch (event) {
                 case VPAIDEvent.AdImpression:
+                    // these events must always exist
                     firePixels(impressions, event);
                     break;
                 case VPAIDEvent.AdStarted:
                     if (trackingEvents.hasOwnProperty('start')) firePixels(trackingEvents.start, event);
+                    if (trackingEvents.hasOwnProperty('creativeView')) firePixels(trackingEvents.start, event);
                     break;
+                case VPAIDEvent.AdVideoFirstQuartile:
+                    if (trackingEvents.hasOwnProperty('firstQuartile')) firePixels(trackingEvents.start, event);
+                    break;
+                case VPAIDEvent.AdVideoMidpoint:
+                    if (trackingEvents.hasOwnProperty('midpoint')) firePixels(trackingEvents.start, event);
+                    break;
+                case VPAIDEvent.AdVideoThirdQuartile:
+                    if (trackingEvents.hasOwnProperty('thirdQuartile')) firePixels(trackingEvents.start, event);
+                    break;
+                case VPAIDEvent.AdVideoComplete:
+                    if (trackingEvents.hasOwnProperty('complete')) firePixels(trackingEvents.start, event);
+                    break;
+                case VPAIDEvent.AdPaused:
+                    if (trackingEvents.hasOwnProperty('pause')) firePixels(trackingEvents.start, event);
+                    break;
+                case VPAIDEvent.AdPlaying:
+                    if (trackingEvents.hasOwnProperty('resume')) firePixels(trackingEvents.start, event);
+                    break;
+                case VPAIDEvent.AdUserAcceptInvitation:
+                    if (trackingEvents.hasOwnProperty('acceptInvitation')) firePixels(trackingEvents.start, event);
+                    break;
+                // missing: mute, unmute, fullscreen, rewind
             }
         }
 
@@ -223,7 +259,6 @@ package com.sovrn.ads {
 
         private function adImpression(e:AdCueEvent):void {
             logSourceResult(AdSourceResult.IMPRESSION, e.data.ad_data);
-            // dispatchEvent(new VPAIDEvent(VPAIDEvent.AdImpression));
         }
 
         private function adStopped(e:AdCueEvent):void {

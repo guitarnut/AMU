@@ -2,7 +2,7 @@ package com.sovrn.xml {
 
     import com.sovrn.constants.Config;
     import com.sovrn.constants.VASTSchema;
-    import com.sovrn.constants.WRAPPERSchema;
+    import com.sovrn.constants.WrapperSchema;
     import com.sovrn.model.AdVO;
     import com.sovrn.net.GETRequest;
     import com.sovrn.utils.Console;
@@ -46,10 +46,10 @@ package com.sovrn.xml {
             try {
                 this.xml = new XML(xml);
                 adData = new AdVO();
-                if(slot >= 0) adData.slot = slot;
+                if (slot >= 0) adData.slot = slot;
 
                 var children:XMLList = this.xml.children();
-                var schema:Object = (children.descendants('VASTAdTagURI').length() > 0) ? WRAPPERSchema : VASTSchema;
+                var schema:Object = (children.descendants('VASTAdTagURI').length() > 0) ? WrapperSchema : VASTSchema;
 
                 parseXML(children, schema);
 
@@ -96,12 +96,15 @@ package com.sovrn.xml {
         private function storeNodeAttribute(node:XML, attributes:Array):Object {
             var values:Object = {};
 
-            attributes.map(function (val:String, index:Number, array:Array):void {
-                if (node.attribute(val).length() > 0) {
-                    values[val] = String(node.attribute(val));
+            attributes.map(function (val:Object, index:Number, array:Array):void {
+                if (node.attribute(val.name).length() > 0) {
+                    values[val.name] = String(node.attribute(val.name));
                 } else {
-                    Console.log('node missing attribute: ' + val);
-                    //throw new Error('node ' + node.name() + ' missing required attribute ' + val);
+                    Console.log('node missing attribute: ' + val.name);
+
+                    if (val.required) {
+                        throw new Error('node ' + node.name() + ' missing required attribute ' + val);
+                    }
                 }
             });
 

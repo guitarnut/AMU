@@ -2,6 +2,7 @@ package com.sovrn.ads {
     import com.sovrn.constants.AdTypes;
     import com.sovrn.model.AdVO;
     import com.sovrn.model.InitConfigVO;
+    import com.sovrn.view.Canvas;
 
     public class VideoAd implements IAdInstance {
 
@@ -9,6 +10,7 @@ package com.sovrn.ads {
         private var _ad:*;
         private var _data:AdVO;
         private var _config:InitConfigVO;
+        private var _view:Canvas;
 
         public function VideoAd(data:AdVO):void {
 
@@ -24,6 +26,10 @@ package com.sovrn.ads {
 
         public function set config(initConfig:InitConfigVO):void {
             _config = initConfig;
+        }
+
+        public function set view(val:Canvas):void {
+            _view = val;
         }
 
         public function get ad():* {

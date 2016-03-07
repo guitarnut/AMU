@@ -10,6 +10,7 @@ package {
     import com.sovrn.utils.Console;
     import com.sovrn.utils.ObjectTools;
     import com.sovrn.utils.StringTools;
+    import com.sovrn.video.VideoPlayer;
     import com.sovrn.view.Canvas;
     import com.sovrn.vpaid.VPAIDWrapper;
 
