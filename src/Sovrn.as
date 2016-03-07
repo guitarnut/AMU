@@ -170,7 +170,7 @@ package {
             }
         }
 
-        private function end(e:VPAIDEvent = null):void {
+        private function end(e:Event = null):void {
             Console.log('end() called');
 
             if (sessionStarted) {

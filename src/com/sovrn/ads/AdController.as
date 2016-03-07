@@ -1,6 +1,7 @@
 package com.sovrn.ads {
 
     import com.sovrn.constants.AdVPAIDEvents;
+    import com.sovrn.constants.Config;
     import com.sovrn.events.AdCueEvent;
     import com.sovrn.model.AdVO;
     import com.sovrn.model.InitConfigVO;
@@ -8,7 +9,9 @@ package com.sovrn.ads {
     import com.sovrn.view.Canvas;
 
     import flash.display.Sprite;
+    import flash.events.Event;
     import flash.events.EventDispatcher;
+    import flash.net.URLRequest;
 
     import vpaid.VPAIDEvent;
 
@@ -19,6 +22,8 @@ package com.sovrn.ads {
         private var adInstance:*;
         private var dispatcher:EventDispatcher;
         private var storedSetCalls:Array;
+        private var trackingEvents:Object;
+        private var impressions:Array;
         private var _view:Canvas;
 
         public function AdController():void {
@@ -34,7 +39,7 @@ package com.sovrn.ads {
 
             var adCollection:Array = [];
 
-            ads.map(function(val:AdVO, index:Number, array:Array):void {
+            ads.map(function (val:AdVO, index:Number, array:Array):void {
                 var ad:VPAIDAd = new VPAIDAd(val);
                 adCollection.push(ad);
             });
@@ -94,8 +99,32 @@ package com.sovrn.ads {
             }
         }
 
-        private function dispatchAdEvent(e:VPAIDEvent):void {
+        private function dispatchAdEvent(e:Event):void {
             dispatcher.dispatchEvent(new VPAIDEvent(e.type));
+            trackEvent(e.type);
+        }
+
+        private function trackEvent(event:String):void {
+            switch (event) {
+                case VPAIDEvent.AdImpression:
+                    firePixels(impressions, event);
+                    break;
+                case VPAIDEvent.AdStarted:
+                    if (trackingEvents.hasOwnProperty('start')) firePixels(trackingEvents.start, event);
+                    break;
+            }
+        }
+
+        private function firePixels(pixels:Array, event:String):void {
+            for (var i:Number = 0, len:Number = pixels.length; i < len; i++) {
+                if (i < Config.TRACKING_PIXEL_LIMIT) {
+                    Console.log(pixels[0]);
+                    new URLRequest(pixels[0]);
+                } else {
+                    Console.log('pixel limit reached for event ' + event);
+                    break;
+                }
+            }
         }
 
         public function loadAd():void {
@@ -106,7 +135,7 @@ package com.sovrn.ads {
             arguments = arguments || [];
 
             if (!adInstance) {
-                if(property == 'get') {
+                if (property == 'get') {
                     storedSetCalls.push({
                         method: method,
                         arguments: [arguments[0]]
@@ -118,15 +147,15 @@ package com.sovrn.ads {
                 try {
                     switch (property) {
                         case 'get':
-                            Console.log('get');
+                            //Console.log('get');
                             return adInstance[method];
                             break;
                         case 'set':
-                            Console.log('set');
+                            //Console.log('set');
                             adInstance[method] = arguments[0];
                             break;
                         default:
-                            Console.log('default');
+                            //Console.log('default');
                             adInstance[method].apply(adInstance, arguments);
                             break;
                     }
@@ -142,10 +171,15 @@ package com.sovrn.ads {
 
         public function stop():void {
             removeAdEvents();
+            adCue.stop();
         }
 
         private function adLoaded(e:AdCueEvent):void {
+            //Console.obj(e.data);
             adInstance = e.data.vpaid;
+            trackingEvents = e.data.trackingEvents;
+            impressions = e.data.impressions;
+
             addAdEvents();
             dispatchEvent(new VPAIDEvent(VPAIDEvent.AdLoaded));
         }
@@ -161,7 +195,7 @@ package com.sovrn.ads {
 
         private function adImpression(e:AdCueEvent):void {
             logSourceResult(e.data);
-            dispatchEvent(new VPAIDEvent(VPAIDEvent.AdImpression));
+            // dispatchEvent(new VPAIDEvent(VPAIDEvent.AdImpression));
         }
 
         private function adStopped(e:AdCueEvent):void {

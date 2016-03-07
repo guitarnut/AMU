@@ -7,6 +7,7 @@ package com.sovrn.vpaid {
     import com.sovrn.utils.Console;
 
     import flash.display.Sprite;
+    import flash.events.Event;
     import flash.events.EventDispatcher;
 
     import vpaid.IVPAID;
@@ -42,7 +43,7 @@ package com.sovrn.vpaid {
 
         private function addControllerListeners():void {
             _adController.addEventListener(VPAIDEvent.AdLoaded, handleAdControllerEvent);
-            _adController.addEventListener(VPAIDEvent.AdImpression, handleAdControllerEvent);
+            //_adController.addEventListener(VPAIDEvent.AdImpression, handleAdControllerEvent);
             _adController.addEventListener(VPAIDEvent.AdError, handleAdControllerEvent);
             _adController.addEventListener(VPAIDEvent.AdStopped, handleAdControllerEvent);
         }
@@ -53,11 +54,13 @@ package com.sovrn.vpaid {
             });
         }
 
-        private function dispatchAdEvent(e:VPAIDEvent):void {
+        private function dispatchAdEvent(e:Event):void {
+            e.stopImmediatePropagation();
             dispatchEvent(new VPAIDEvent(e.type));
         }
 
-        private function handleAdControllerEvent(e:VPAIDEvent):void {
+        private function handleAdControllerEvent(e:Event):void {
+            e.stopImmediatePropagation();
             Console.log('controller: ' + e.type);
 
             switch (e.type) {
@@ -67,15 +70,13 @@ package com.sovrn.vpaid {
                 case VPAIDEvent.AdLoaded:
                     dispatchEvent(new VPAIDEvent(VPAIDEvent.AdLoaded));
                     break;
-                case VPAIDEvent.AdImpression:
-                    dispatchEvent(new VPAIDEvent(VPAIDEvent.AdImpression));
-                    break;
+                //case VPAIDEvent.AdImpression:
+                    //dispatchEvent(new VPAIDEvent(VPAIDEvent.AdImpression));
+                    //break;
                 case VPAIDEvent.AdStopped:
                     dispatchEvent(new VPAIDEvent(VPAIDEvent.AdStopped));
                     break;
             }
-
-            e.stopImmediatePropagation();
         }
 
         // this ends the session
@@ -146,6 +147,8 @@ package com.sovrn.vpaid {
 
         public function stopAd():void {
             _adController.callAdMethod('stopAd');
+            _adController.stop();
+            dispatchEvent(new VPAIDEvent(VPAIDEvent.AdStopped));
         }
 
         public function pauseAd():void {

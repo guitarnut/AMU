@@ -49,12 +49,14 @@ package vpaid {
         public static const AdTimeout:String = "AdTimeout";
         public static const BeaconFailed:String = "BeaconFailed";
 
+        private static const DONT_LOG:Array = [VPAIDEvent.AdRemainingTimeChange];
+
         public var _data:Object;
 
         public function VPAIDEvent(eventType:String, data:Object = null, bubbles:Boolean = true, cancelable:Boolean = false) {
             super(eventType, bubbles, cancelable);
 
-            Console.log('VPAIDEvent: ' + eventType);
+            if (DONT_LOG.indexOf(eventType) == -1)Console.log('VPAIDEvent: ' + eventType);
 
             _data = data;
         }

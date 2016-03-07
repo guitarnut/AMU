@@ -13,7 +13,7 @@ package com.sovrn.constants {
             VPAIDEvent.AdExpandedChange,
             VPAIDEvent.AdRemainingTimeChange,
             VPAIDEvent.AdVolumeChange,
-            // VPAIDEvent.AdImpression,
+            VPAIDEvent.AdImpression,
             VPAIDEvent.AdVideoStart,
             VPAIDEvent.AdVideoFirstQuartile,
             VPAIDEvent.AdVideoMidpoint,

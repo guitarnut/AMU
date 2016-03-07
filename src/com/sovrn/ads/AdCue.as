@@ -53,30 +53,41 @@ package com.sovrn.ads {
         private function addListeners(ad:IAdInstance):void {
             DisplayObjectContainer(ad).addEventListener(AdInstanceEvent.AdLoaded, adReady);
             DisplayObjectContainer(ad).addEventListener(AdInstanceEvent.AdError, adError);
+            DisplayObjectContainer(ad).addEventListener(AdInstanceEvent.AdStopped, adStopped);
         }
 
         private function removeListeners(ad:IAdInstance):void {
             DisplayObjectContainer(ad).removeEventListener(AdInstanceEvent.AdLoaded, adReady);
             DisplayObjectContainer(ad).removeEventListener(AdInstanceEvent.AdError, adError);
+            DisplayObjectContainer(ad).removeEventListener(AdInstanceEvent.AdStopped, adStopped);
         }
 
         private function adReady(e:AdInstanceEvent):void {
-            dispatchEvent(new AdCueEvent(AdCueEvent.AD_CUE_READY, {vpaid: currentAd.ad}));
+            dispatchEvent(new AdCueEvent(AdCueEvent.AD_CUE_READY, {
+                vpaid: currentAd.ad,
+                impressions: ads[0].data.impressions,
+                tracking: ads[0].data.trackingEvents
+            }));
         }
 
         private function adError(e:AdInstanceEvent):void {
             next();
         }
 
+        private function adStopped(e:AdInstanceEvent):void {
+            dispatchEvent(new AdCueEvent(AdCueEvent.AD_CUE_COMPLETE));
+        }
+
         public function next():void {
             removeListeners(currentAd);
-            //currentAd.destroy();
+            currentAd.destroy();
             ads.splice(0, 1);
             loadAd();
         }
 
         public function stop():void {
-            dispatchEvent(new AdCueEvent(AdCueEvent.AD_CUE_COMPLETE));
+            if(currentAd) removeListeners(currentAd);
+            ads = [];
         }
 
     }

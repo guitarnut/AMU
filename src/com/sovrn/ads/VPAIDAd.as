@@ -60,6 +60,7 @@ package com.sovrn.ads {
             try {
                 adInstance.addEventListener(VPAIDEvent.AdLoaded, handleVPAIDEvent);
                 adInstance.addEventListener(VPAIDEvent.AdError, handleVPAIDEvent);
+                adInstance.addEventListener(VPAIDEvent.AdStopped, handleVPAIDEvent);
             } catch (e:Error) {
                 Console.log(e.toString());
             }
@@ -67,8 +68,13 @@ package com.sovrn.ads {
         }
 
         private function removeVPAIDEvents(adInstance:*):void {
-            adInstance.removeEventListener(VPAIDEvent.AdLoaded, handleVPAIDEvent);
-            adInstance.removeEventListener(VPAIDEvent.AdError, handleVPAIDEvent);
+            try {
+                adInstance.removeEventListener(VPAIDEvent.AdLoaded, handleVPAIDEvent);
+                adInstance.removeEventListener(VPAIDEvent.AdError, handleVPAIDEvent);
+                adInstance.removeEventListener(VPAIDEvent.AdStopped, handleVPAIDEvent);
+            } catch (e:Error) {
+                Console.log(e.toString());
+            }
         }
 
         private function initAd():void {
@@ -98,6 +104,9 @@ package com.sovrn.ads {
                     break;
                 case VPAIDEvent.AdError:
                     dispatchEvent(new AdInstanceEvent(AdInstanceEvent.AdError));
+                    break;
+                case VPAIDEvent.AdStopped:
+                    dispatchEvent(new AdInstanceEvent(AdInstanceEvent.AdStopped));
                     break;
                 default:
                     break;
