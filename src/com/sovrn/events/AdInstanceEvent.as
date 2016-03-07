@@ -8,6 +8,7 @@ package com.sovrn.events {
 
         public static const AdError:String = "AdError";
         public static const AdLoaded:String = "AdLoaded";
+        public static const AdTimeout:String = "AdTimeout";
         public static const AdImpression:String = "AdImpression";
         public static const AdStopped:String = "AdStopped";
 

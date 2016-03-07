@@ -1,5 +1,6 @@
 package com.sovrn.ads {
 
+    import com.sovrn.constants.AdSourceResult;
     import com.sovrn.constants.AdVPAIDEvents;
     import com.sovrn.constants.Config;
     import com.sovrn.events.AdCueEvent;
@@ -44,6 +45,7 @@ package com.sovrn.ads {
                 adCollection.push(ad);
             });
 
+            // create a new object each time
             adCue = new AdCue(adCollection);
             addListeners(adCue);
         }
@@ -84,6 +86,10 @@ package com.sovrn.ads {
             return dispatcher;
         }
 
+        /* ------------------------
+         ad instance events handling
+         ------------------------ */
+
         // these are the vpaid events we will allow to bubble up
         private function addAdEvents():void {
             AdVPAIDEvents.ALLOWED_EVENTS.map(function (val:String, index:Number, array:Array):void {
@@ -103,6 +109,10 @@ package com.sovrn.ads {
             dispatcher.dispatchEvent(new VPAIDEvent(e.type));
             trackEvent(e.type);
         }
+
+        /* ------------------------
+         tracking pixel handling
+         ------------------------ */
 
         private function trackEvent(event:String):void {
             switch (event) {
@@ -126,6 +136,10 @@ package com.sovrn.ads {
                 }
             }
         }
+
+        /* ------------------------
+         ad instance control
+         ------------------------ */
 
         public function loadAd():void {
             adCue.start(_initConfig, _view);
@@ -174,11 +188,14 @@ package com.sovrn.ads {
             adCue.stop();
         }
 
+        /* ------------------------
+         ad cue event handling
+         ------------------------ */
+
         private function adLoaded(e:AdCueEvent):void {
-            //Console.obj(e.data);
             adInstance = e.data.vpaid;
-            trackingEvents = e.data.trackingEvents;
-            impressions = e.data.impressions;
+            trackingEvents = e.data.ad_data.trackingEvents;
+            impressions = e.data.ad_data.impressions;
 
             addAdEvents();
             dispatchEvent(new VPAIDEvent(VPAIDEvent.AdLoaded));
@@ -189,12 +206,23 @@ package com.sovrn.ads {
         }
 
         private function sourceFailed(e:AdCueEvent):void {
-            logSourceResult(e.data);
+            var result:String = "";
+
+            switch (e.type) {
+                case AdCueEvent.AD_CUE_ERROR:
+                    result = AdSourceResult.ERROR;
+                    break;
+                case AdCueEvent.AD_CUE_TIMEOUT:
+                    result = AdSourceResult.TIMEOUT;
+                    break;
+            }
+
+            logSourceResult(result, e.data.ad_data);
             waterfall();
         }
 
         private function adImpression(e:AdCueEvent):void {
-            logSourceResult(e.data);
+            logSourceResult(AdSourceResult.IMPRESSION, e.data.ad_data);
             // dispatchEvent(new VPAIDEvent(VPAIDEvent.AdImpression));
         }
 
@@ -207,13 +235,25 @@ package com.sovrn.ads {
             adCue.next();
         }
 
-        private function logSourceResult(data:Object):void {
+        /* ------------------------
+         ad instance result logging
+         ------------------------ */
+
+        private function logSourceResult(event:String, data:AdVO):void {
+            Console.log(event + ", " + data.campaignId);
         }
+
+        /* ------------------------
+         reset state
+         ------------------------ */
 
         public function reset():void {
             removeListeners(adCue);
+
             adCue = null;
             adInstance = null;
+            trackingEvents = null;
+            impressions = null;
             storedSetCalls = [];
         }
 

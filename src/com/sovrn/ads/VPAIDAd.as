@@ -27,6 +27,10 @@ package com.sovrn.ads {
             _data = data;
         }
 
+        /* ------------------------
+         ad instance setup
+         ------------------------ */
+
         public function load():void {
             Console.log('loading ' + _data.mediaFiles[0].MediaFile);
 
@@ -61,6 +65,7 @@ package com.sovrn.ads {
                 adInstance.addEventListener(VPAIDEvent.AdLoaded, handleVPAIDEvent);
                 adInstance.addEventListener(VPAIDEvent.AdError, handleVPAIDEvent);
                 adInstance.addEventListener(VPAIDEvent.AdStopped, handleVPAIDEvent);
+                adInstance.addEventListener(VPAIDEvent.AdImpression, handleVPAIDEvent);
             } catch (e:Error) {
                 Console.log(e.toString());
             }
@@ -72,10 +77,15 @@ package com.sovrn.ads {
                 adInstance.removeEventListener(VPAIDEvent.AdLoaded, handleVPAIDEvent);
                 adInstance.removeEventListener(VPAIDEvent.AdError, handleVPAIDEvent);
                 adInstance.removeEventListener(VPAIDEvent.AdStopped, handleVPAIDEvent);
+                adInstance.removeEventListener(VPAIDEvent.AdImpression, handleVPAIDEvent);
             } catch (e:Error) {
                 Console.log(e.toString());
             }
         }
+
+        /* ------------------------
+         vpaid
+         ------------------------ */
 
         private function initAd():void {
             try {
@@ -108,10 +118,17 @@ package com.sovrn.ads {
                 case VPAIDEvent.AdStopped:
                     dispatchEvent(new AdInstanceEvent(AdInstanceEvent.AdStopped));
                     break;
+                case VPAIDEvent.AdImpression:
+                    dispatchEvent(new AdInstanceEvent(AdInstanceEvent.AdImpression));
+                    break;
                 default:
                     break;
             }
         }
+
+        /* ------------------------
+         remove instance
+         ------------------------ */
 
         public function destroy():void {
             _view.removeChild(adObject);
