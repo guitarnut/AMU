@@ -4,6 +4,9 @@ package com.sovrn.video {
     import com.sovrn.constants.Config;
     import com.sovrn.model.AdVO;
     import com.sovrn.utils.Console;
+    import com.sovrn.video.view.MuteButton;
+    import com.sovrn.video.view.PlayButton;
+    import com.sovrn.video.view.TextMessage;
     import com.sovrn.view.Canvas;
 
     import flash.display.Sprite;
@@ -15,6 +18,9 @@ package com.sovrn.video {
     public class VideoController extends Sprite implements IVPAID {
 
         private var video:VideoPlayer;
+        private var muteButton:MuteButton;
+        private var playButton:PlayButton;
+        private var text:TextMessage;
         private var _view:Canvas;
         private var _data:AdVO;
         private var _mediaFileVOs:Array;
@@ -65,6 +71,31 @@ package com.sovrn.video {
 
             video.init();
             _view.addChild(video);
+
+            text = new TextMessage();
+            text.update("Advertisement");
+            text.show();
+            _view.addChild(text);
+
+            muteButton = new MuteButton();
+
+            playButton = new PlayButton();
+            _view.addChild(playButton);
+
+            positionAssets();
+        }
+
+        private function positionAssets():void {
+            text.x = 3;
+            text.y = 3;
+
+            muteButton.x = 3;
+            muteButton.y = 1;
+            muteButton.width = 30;
+            muteButton.height = 25;
+
+            playButton.x = _view.width / 2 - playButton.width / 2;
+            playButton.y = _view.height / 2 - playButton.height / 2;
         }
 
         /* ------ getters / setters ----------------------------------------- */
@@ -91,7 +122,9 @@ package com.sovrn.video {
         /* ------ layout methods ----------------------------------------- */
 
         public function resizeAd(w:Number, h:Number, viewMode:String):void {
+            _view.resize(w, h);
             video.resize(w, h, viewMode);
+            positionAssets();
         }
 
         /* ------  control methods ----------------------------------------- */
@@ -103,6 +136,9 @@ package com.sovrn.video {
         }
 
         public function startAd():void {
+            _view.removeChild(playButton);
+            _view.addChild(muteButton);
+            _view.removeChild(text);
             video.play();
         }
 

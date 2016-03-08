@@ -17,6 +17,7 @@ package com.sovrn.model {
         private var _trueLoc:String;
         private var _trueDomain:String;
         private var _vtid:String;
+        private var _tid:String;
         private var _server:String;
 
         public function ApplicationVO() {
@@ -39,7 +40,7 @@ package com.sovrn.model {
         }
 
         public function set view(val:Canvas):void {
-            if (!this._view) this._view = val;
+            this._view = val;
         }
 
         public function get view():Canvas {
@@ -108,6 +109,14 @@ package com.sovrn.model {
 
         public function get trueDomain():String {
             return this._trueDomain;
+        }
+
+        public function set tid(val:String):void {
+            this._tid = val;
+        }
+
+        public function get tid():String {
+            return this._tid;
         }
 
         public function set vtid(val:String):void {

@@ -31,38 +31,3 @@ package com.sovrn.video.view {
     }
 
 }
-
-/*
-
- [Bindable]
- [Embed(source="img/icon.png")]
- private static var _asset:Class;
- private static var _bitAsset:BitmapAsset;
- private static var _icon:Bitmap;
- private static var _iconContainer:Sprite;
- private static var _onstage:Boolean = false;
- private static var _timer:Timer;
- private static var _x:Number;
- private static var _y:Number;
-
- public function LoadIcon() {
- }
-
- public static function start():void {
- if (!_icon) {
- // need this class to export in the build
- _bitAsset = new BitmapAsset();
-
- _icon = new _asset() as Bitmap;
- _icon.smoothing = true;
- _icon.x = -1 * (_icon.width / 2);
- _icon.y = -1 * (_icon.height / 2);
-
- _iconContainer = new Sprite();
- _iconContainer.addChild(_icon);
-
- _timer = new Timer(50, 0);
- _timer.addEventListener(TimerEvent.TIMER, animate);
- }
-
- */

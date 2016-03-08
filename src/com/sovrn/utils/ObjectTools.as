@@ -15,6 +15,21 @@ package com.sovrn.utils {
             return query.join("&");
         }
 
+        public static function paramsToObj(params:String):Object {
+            var result:Object = {};
+            var pairs:Array = params.split("&");
+
+            pairs.map(function(val:String, index:Number, array:Array):void {
+                var pair:Array = val.split("=");
+
+                if(pair.length == 2) {
+                    result[pair[0]] = pair[1];
+                }
+            });
+
+            return result;
+        }
+
         public static function values(obj:Object, exclude:Array = null):String {
             var query:Array = [];
             exclude = exclude || [];

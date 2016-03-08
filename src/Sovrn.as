@@ -5,12 +5,14 @@ package {
 
     import com.sovrn.ads.AdCall;
     import com.sovrn.ads.AdController;
+    import com.sovrn.constants.Config;
     import com.sovrn.events.AdManagerEvent;
     import com.sovrn.model.ApplicationVO;
+    import com.sovrn.net.Beacon;
     import com.sovrn.utils.Console;
+    import com.sovrn.utils.ExternalMethods;
     import com.sovrn.utils.ObjectTools;
     import com.sovrn.utils.StringTools;
-    import com.sovrn.video.VideoPlayer;
     import com.sovrn.view.Canvas;
     import com.sovrn.vpaid.VPAIDWrapper;
 
@@ -27,6 +29,9 @@ package {
 
     public class Sovrn extends Sprite {
 
+        [Embed(source="../js/sovrn.js", mimeType="application/octet-stream")]
+        private var js:Class;
+
         private var applicationConfig:ApplicationVO;
         private var vpaid:VPAIDWrapper;
         private var adController:AdController;
@@ -34,8 +39,10 @@ package {
         private var initCalled:Boolean;
         private var adDeliveryCalled:Boolean;
         private var sessionStarted:Boolean = false;
+        private var adLoaded:Boolean = false;
         private var session:int;
         private var view:Canvas;
+        private var beacon:Beacon;
 
         public function Sovrn() {
             Security.allowDomain("*");
@@ -68,6 +75,8 @@ package {
             session = 1;
 
             Console.log("initializing");
+
+            if (ExternalMethods.available()) ExternalMethods.inject(new js().toString());
 
             config();
         }
@@ -114,11 +123,11 @@ package {
                 applicationConfig.publisherLoc = params.loc || "";
                 applicationConfig.vtid = params.vtid || "";
                 applicationConfig.zoneId = params.zoneid || 0;
-                applicationConfig.server = params.ljt || "";
+                applicationConfig.server = params.ljt || Config.SERVER;
                 applicationConfig.stageWidth = params.vidwidth || this.width || 0;
                 applicationConfig.stageHeight = params.vidheight || this.height || 0;
-                applicationConfig.trueLoc = "";
-                applicationConfig.trueDomain = StringTools.domain("");
+                applicationConfig.trueLoc = ExternalMethods.userLoc() || "";
+                applicationConfig.trueDomain = StringTools.domain(applicationConfig.trueLoc);
                 applicationConfig.view = view;
 
                 if (validateConfig()) {
@@ -154,20 +163,38 @@ package {
                     adCall = null;
                     adController.ads = e.data.ads;
                     adDeliveryCalled = true;
+                    applicationConfig.tid = e.data.ads[0].tid || "";
                     break;
                 case AdManagerEvent.INIT_AD_CALLED:
-                    sessionStarted = true;
-                    adController.initConfig = e.data;
-                    initCalled = true;
-                    Console.log("initAd() called -\n" + ObjectTools.values(e.data));
-                    if (session > 1 && !adDeliveryCalled) getAds();
+                    if (!sessionStarted) {
+                        sessionStarted = true;
+                        adController.initConfig = e.data;
+                        initCalled = true;
+                        view.resize(e.data.width, e.data.height);
+
+                        Console.log("initAd() called -\n" + ObjectTools.values(e.data));
+
+                        if (session > 1 && !adDeliveryCalled) getAds();
+                    }
                     break;
             }
 
             if (initCalled && adDeliveryCalled) {
-                Console.log('sources loaded and initAd() called, starting VPAID');
-                adController.view = applicationConfig.view;
-                adController.loadAd();
+                if (!adLoaded) {
+
+                    if (!beacon) {
+                        beacon = new Beacon(applicationConfig);
+                        beacon.fire();
+                    }
+
+                    adLoaded = true;
+
+                    Console.log('sources loaded and initAd() called, starting VPAID');
+
+                    view.show();
+                    adController.view = applicationConfig.view;
+                    adController.loadAd();
+                }
             }
         }
 
@@ -176,10 +203,19 @@ package {
 
             if (sessionStarted) {
                 sessionStarted = false;
-                adController.reset();
                 initCalled = false;
                 adDeliveryCalled = false;
+                adLoaded = false;
+
+                adController.reset();
+                view.cleanup();
+                removeChild(view);
+
+                view = new Canvas();
                 view.hide();
+                addChild(view);
+                applicationConfig.view = view;
+
                 session++;
             }
         }

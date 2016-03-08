@@ -4,35 +4,37 @@ package com.sovrn.video {
     import com.sovrn.model.MediaFileVO;
     import com.sovrn.utils.Console;
     import com.sovrn.video.view.ClickArea;
-    import com.sovrn.video.view.MuteButton;
-    import com.sovrn.video.view.PlayButton;
 
     import flash.display.Sprite;
     import flash.events.NetStatusEvent;
     import flash.media.Video;
     import flash.net.NetConnection;
     import flash.net.NetStream;
+    import flash.utils.setTimeout;
 
     import vpaid.VPAIDEvent;
 
     public class VideoPlayer extends Sprite {
 
+        private var errorFired:Boolean = false;
         private var video:Video;
         private var nc:NetConnection;
         private var ns:NetStream;
         private var initWidth:Number;
         private var initHeight:Number;
+        private var currentHeight:Number;
+        private var currentWidth:Number;
         private var aspectRatio:Number;
         private var mediaFileCollection:Array;
         private var mediaFileVO:MediaFileVO;
-        private var muteButton:MuteButton;
-        private var playButton:PlayButton;
         private var clickArea:ClickArea;
         private var _clickThrough:String;
         private var _clickTracking:Array;
         private var _bitrate:Number;
+        private var _duration:Number;
 
         public function VideoPlayer(w:Number, h:Number, files:Array) {
+            Console.log(w + ', ' + h);
             mediaFileCollection = [];
             initWidth = w;
             initHeight = h;
@@ -63,9 +65,6 @@ package com.sovrn.video {
                 video.attachNetStream(ns);
                 video.smoothing = true;
 
-                muteButton = new MuteButton();
-                playButton = new PlayButton();
-
                 aspectRatio = mediaFileVO.width / mediaFileVO.height;
                 Console.log('aspect: ' + aspectRatio);
             }
@@ -80,11 +79,7 @@ package com.sovrn.video {
                     addChild(clickArea);
                 }
 
-                addChild(muteButton);
-                addChild(playButton);
-
                 resize(initWidth, initHeight);
-
                 dispatchEvent(new VPAIDEvent(VPAIDEvent.AdLoaded));
             } else {
                 dispatchEvent(new VPAIDEvent(VPAIDEvent.AdError));
@@ -92,7 +87,7 @@ package com.sovrn.video {
         }
 
         private function onMetaData(data:Object):void {
-            Console.obj(data);
+            _duration = Math.floor(data.duration);
         }
 
         private function handleNetStatusEvent(e:NetStatusEvent):void {
@@ -100,9 +95,12 @@ package com.sovrn.video {
 
             switch (e.info.code) {
                 case 'NetStream.Play.Start':
-                    dispatchEvent(new VPAIDEvent(VPAIDEvent.AdStarted));
-                    dispatchEvent(new VPAIDEvent(VPAIDEvent.AdImpression));
-                    removeChild(playButton);
+                    setTimeout(function ():void {
+                        if (!errorFired) {
+                            dispatchEvent(new VPAIDEvent(VPAIDEvent.AdStarted));
+                            dispatchEvent(new VPAIDEvent(VPAIDEvent.AdImpression));
+                        }
+                    }, 500);
                     break;
                 case 'NetStream.Play.Stop':
                     dispatchEvent(new VPAIDEvent(VPAIDEvent.AdVideoComplete));
@@ -137,46 +135,37 @@ package com.sovrn.video {
         }
 
         public function stop():void {
+            nc.close();
             ns = null;
+            nc = null;
         }
 
         public function resize(w:Number, h:Number, viewMode:String = ""):void {
-            Console.log('sizing video to ' + w + ', ' + h);
-
-            var xOffset:Number = 0;
-            var yOffset:Number = 0;
             var origWidth:Number = w;
             var origHeight:Number = h;
 
-            if (Math.floor(w / aspectRatio) > h) {
-                Console.log('width exceeds area');
+            if (Math.floor(h * aspectRatio) < w) {
                 w = Math.floor(h * aspectRatio);
-                xOffset = Math.floor((origWidth - w) / 2);
-            } else if (Math.floor(h * aspectRatio) > w) {
-                Console.log('height exceeds area');
+            } else if (Math.floor(w / aspectRatio) < h) {
                 h = Math.floor(w / aspectRatio);
-                yOffset = Math.floor((origHeight - h) / 2);
             }
+
+            var xOffset:Number = Math.floor((origWidth - w) / 2);
+            var yOffset:Number = Math.floor((origHeight - h) / 2);
 
             video.width = w;
             video.height = h;
-
-            Console.log('positioning video: ' + xOffset + ', ' + yOffset);
-
             video.x = xOffset;
             video.y = yOffset;
+
+            currentHeight = h;
+            currentWidth = w;
 
             if (clickArea) {
                 clickArea.resize(w, h);
                 clickArea.x = xOffset;
                 clickArea.y = yOffset;
             }
-
-            muteButton.x = xOffset + 5;
-            muteButton.y = yOffset + 5;
-
-            playButton.x = w / 2 + xOffset / 2;
-            playButton.y = h / 2 + yOffset / 2;
         }
 
         public function changeVolume(v:Number):void {
@@ -184,7 +173,7 @@ package com.sovrn.video {
         }
 
         public function get duration():Number {
-            return 0;
+            return _duration || 0;
         }
 
         public function get time():Number {
