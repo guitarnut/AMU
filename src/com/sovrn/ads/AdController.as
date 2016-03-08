@@ -57,7 +57,7 @@ package com.sovrn.ads {
                 // check for VPAID second
                 val.mediaFileData.map(function (vo:MediaFileVO, voIndex:Number, voArray:Array):void {
                     if (Config.COMPATIBLE_VPAID_MIMES.indexOf(vo.type) != -1) {
-                        if (vo.apiFramework.toLocaleLowerCase() == "vpaid") {
+                        if (vo.apiFramework.toLocaleLowerCase() == Config.VPAID_API) {
                             if (!ad) {
                                 ad = new VPAIDAd(val);
                                 vpaidCount++;

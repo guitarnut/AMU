@@ -1,9 +1,11 @@
 package com.sovrn.ads {
 
     import com.sovrn.constants.AdTypes;
+    import com.sovrn.constants.Config;
     import com.sovrn.events.AdInstanceEvent;
     import com.sovrn.model.AdVO;
     import com.sovrn.model.InitConfigVO;
+    import com.sovrn.model.MediaFileVO;
     import com.sovrn.net.FileRequest;
     import com.sovrn.utils.Console;
     import com.sovrn.view.Canvas;
@@ -18,6 +20,8 @@ package com.sovrn.ads {
         private static const AD_TYPE:String = AdTypes.VPAID;
         private var _ad:*;
         private var _data:AdVO;
+        private var _mediaFileVOs:Array;
+        private var _mediaFile:MediaFileVO;
         private var _config:InitConfigVO;
         private var _view:Canvas;
         private var adObject:*;
@@ -25,6 +29,7 @@ package com.sovrn.ads {
 
         public function VPAIDAd(data:AdVO):void {
             _data = data;
+            _mediaFileVOs = data.mediaFileData;
         }
 
         /* ------------------------
@@ -32,11 +37,23 @@ package com.sovrn.ads {
          ------------------------ */
 
         public function load():void {
-            Console.log('loading ' + _data.mediaFiles[0].MediaFile);
+            _mediaFileVOs.map(function (val:MediaFileVO, index:Number, array:Array):void {
+                if ((val.apiFramework.toLowerCase() == Config.VPAID_API) && (Config.COMPATIBLE_VPAID_MIMES.indexOf(val.type)) != -1) {
+                    if (!_mediaFile) {
+                        _mediaFile = val;
+                    }
+                }
+            });
 
-            adLoader = new FileRequest(_data.mediaFiles[0].MediaFile);
-            adLoader.addEventListener(Event.COMPLETE, adLoaded);
-            adLoader.sendRequest();
+            if (_mediaFile) {
+                Console.log('loading ' + _mediaFile.mediaFile);
+
+                adLoader = new FileRequest(_mediaFile.mediaFile);
+                adLoader.addEventListener(Event.COMPLETE, adLoaded);
+                adLoader.sendRequest();
+            } else {
+                handleVPAIDEvent(new VPAIDEvent(VPAIDEvent.AdError));
+            }
         }
 
         private function adLoaded(e:Event):void {

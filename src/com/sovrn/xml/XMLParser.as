@@ -24,7 +24,6 @@ package com.sovrn.xml {
         private var errors:Array;
         private var trackingEvents:Object;
         private var clickTracking:Array;
-        private var mediaFiles:Array;
         private var mediaFileData:Array;
         private var wrapper:GETRequest;
 
@@ -37,7 +36,6 @@ package com.sovrn.xml {
             errors = [];
             trackingEvents = {};
             clickTracking = [];
-            mediaFiles = [];
             mediaFileData = [];
         }
 
@@ -67,7 +65,6 @@ package com.sovrn.xml {
                     storeNodeText(nodes, schema[node].attributes);
                 } else {
                     if (schema[node].required) {
-                        Console.log('required node ' + node + ' missing');
                         throw new Error('required node ' + node + ' missing');
                     }
                 }
@@ -99,8 +96,6 @@ package com.sovrn.xml {
                 if (node.attribute(val.name).length() > 0) {
                     values[val.name] = String(node.attribute(val.name));
                 } else {
-                    Console.log('node missing attribute: ' + val.name);
-
                     if (val.required) {
                         throw new Error('node ' + node.name() + ' missing required attribute ' + val);
                     }
@@ -117,15 +112,14 @@ package com.sovrn.xml {
                 // multiple values
                 case 'MediaFile':
                     var data:MediaFileVO = new MediaFileVO();
-                    nodeObject['MediaFile'] = value;
-                    mediaFiles.push(nodeObject);
 
+                    data.mediaFile = value;
                     if (nodeObject.height) data.height = nodeObject.height;
                     if (nodeObject.width) data.width = nodeObject.width;
                     if (nodeObject.delivery) data.delivery = nodeObject.delivery;
                     if (nodeObject.type) data.type = nodeObject.type;
                     if (nodeObject.apiFramework) data.apiFramework = nodeObject.apiFramework;
-
+                    if (nodeObject.bitrate) data.bitrate = nodeObject.bitrate;
                     mediaFileData.push(data);
                     break;
                 case 'AdSystem':
@@ -218,7 +212,6 @@ package com.sovrn.xml {
             adData.errors = errors;
             adData.trackingEvents = trackingEvents;
             adData.clickTracking = clickTracking;
-            adData.mediaFiles = mediaFiles;
             adData.mediaFileData = mediaFileData;
 
             dispatchEvent(new Event(Event.COMPLETE));

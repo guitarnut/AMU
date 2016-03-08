@@ -17,6 +17,10 @@ package com.sovrn.constants {
 
         public static const VIDEO_BUFFER_TIME:Number = 5;
 
+        public static const VPAID_API:String = "vpaid";
+
+        public static const VIDEO_DELIVERY:String = "progressive";
+
         public static const COMPATIBLE_VIDEO_MIMES:Array = [
             'video/mp4',
             'video/flv',

@@ -14,7 +14,6 @@ package com.sovrn.model {
         private var _trackingEvents:Object;
         private var _duration:String;
         private var _adParameters:String;
-        private var _mediaFiles:Array;
         private var _mediaFileData:Array;
         private var _tid:String;
         private var _campaignId:int;
@@ -120,14 +119,6 @@ package com.sovrn.model {
 
         public function get adParameters():String {
             return _adParameters;
-        }
-
-        public function set mediaFiles(val:Array):void {
-            if(!_mediaFiles) _mediaFiles = val;
-        }
-
-        public function get mediaFiles():Array {
-            return _mediaFiles;
         }
 
         public function set mediaFileData(val:Array):void {

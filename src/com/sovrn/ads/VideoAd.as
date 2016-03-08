@@ -3,6 +3,7 @@ package com.sovrn.ads {
     import com.sovrn.events.AdInstanceEvent;
     import com.sovrn.model.AdVO;
     import com.sovrn.model.InitConfigVO;
+    import com.sovrn.model.MediaFileVO;
     import com.sovrn.utils.Console;
     import com.sovrn.video.VideoController;
     import com.sovrn.view.Canvas;

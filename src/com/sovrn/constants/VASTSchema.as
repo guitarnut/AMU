@@ -63,7 +63,7 @@ package com.sovrn.constants {
                     },
                     {
                         name: 'type',
-                        required: false
+                        required: true
                     },
                     {
                         name: 'width',
@@ -75,6 +75,10 @@ package com.sovrn.constants {
                     },
                     {
                         name: 'apiFramework',
+                        required: false
+                    },
+                    {
+                        name: 'bitrate',
                         required: false
                     }
                 ]
