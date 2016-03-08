@@ -6,6 +6,7 @@ package com.sovrn.ads {
     import com.sovrn.events.AdCueEvent;
     import com.sovrn.model.AdVO;
     import com.sovrn.model.InitConfigVO;
+    import com.sovrn.model.MediaFileVO;
     import com.sovrn.utils.Console;
     import com.sovrn.view.Canvas;
 
@@ -32,8 +33,8 @@ package com.sovrn.ads {
         }
 
         public function set ads(ads:Array):void {
-            Console.log('ad collection ready');
-            Console.obj(ads);
+            var vpaidCount:Number = 0;
+            var videoCount:Number = 0;
 
             storedSetCalls = [];
             adInstance = null;
@@ -41,9 +42,35 @@ package com.sovrn.ads {
             var adCollection:Array = [];
 
             ads.map(function (val:AdVO, index:Number, array:Array):void {
-                var ad:VPAIDAd = new VPAIDAd(val);
-                adCollection.push(ad);
+                var ad:IAdInstance;
+
+                // check for video files first
+                val.mediaFileData.map(function (vo:MediaFileVO, voIndex:Number, voArray:Array):void {
+                    if (Config.COMPATIBLE_VIDEO_MIMES.indexOf(vo.type) != -1) {
+                        if (!ad) {
+                            ad = new VideoAd(val);
+                            videoCount++;
+                        }
+                    }
+                });
+
+                // check for VPAID second
+                val.mediaFileData.map(function (vo:MediaFileVO, voIndex:Number, voArray:Array):void {
+                    if (Config.COMPATIBLE_VPAID_MIMES.indexOf(vo.type) != -1) {
+                        if (vo.apiFramework.toLocaleLowerCase() == "vpaid") {
+                            if (!ad) {
+                                ad = new VPAIDAd(val);
+                                vpaidCount++;
+                            }
+                        }
+                    }
+                });
+
+                if (ad) adCollection.push(ad);
             });
+
+            Console.log('found ' + vpaidCount + ' VPAID ads and ' + +videoCount + ' video ads');
+            Console.obj(ads);
 
             // create a new object each time
             adCue = new AdCue(adCollection);

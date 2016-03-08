@@ -1,13 +1,48 @@
 package com.sovrn.video {
 
+    import com.sovrn.constants.AdVPAIDEvents;
     import com.sovrn.constants.Config;
+    import com.sovrn.model.AdVO;
+    import com.sovrn.utils.Console;
+    import com.sovrn.view.Canvas;
+
+    import flash.display.Sprite;
+    import flash.events.Event;
 
     import vpaid.IVPAID;
+    import vpaid.VPAIDEvent;
 
-    public class VideoController implements IVPAID {
+    public class VideoController extends Sprite implements IVPAID {
+
+        private var video:VideoPlayer;
+        private var _view:Canvas;
+        private var _config:AdVO;
 
         public function VideoController() {
+        }
 
+        public function set view(val:Canvas):void {
+            _view = val;
+        }
+
+        public function set config(val:AdVO):void {
+            _config = val;
+        }
+
+        private function addEvents():void {
+            AdVPAIDEvents.ALL_EVENTS.map(function(val:String, index:Number, array:Array):void {
+                video.addEventListener(val, handleEvents);
+            });
+        }
+
+        private function removeEvents():void {
+            AdVPAIDEvents.ALL_EVENTS.map(function(val:String, index:Number, array:Array):void {
+                video.removeEventListener(val, handleEvents);
+            });
+        }
+
+        private function handleEvents(e:Event):void {
+            dispatchEvent(new VPAIDEvent(e.type));
         }
 
         /* ----------------------------------------- */
@@ -19,7 +54,9 @@ package com.sovrn.video {
         }
 
         public function initAd(width:Number, height:Number, viewMode:String, desiredBitrate:Number, creativeData:String = "", environmentVars:String = ""):void {
-
+            video = new VideoPlayer(width, height);
+            _view.addChild(video);
+            dispatchEvent(new VPAIDEvent(VPAIDEvent.AdLoaded));
         }
 
         /* ------ getters / setters ----------------------------------------- */
@@ -46,6 +83,7 @@ package com.sovrn.video {
         /* ------ layout methods ----------------------------------------- */
 
         public function resizeAd(w:Number, h:Number, viewMode:String):void {
+            video.resize(w,h, viewMode);
         }
 
         /* ------  control methods ----------------------------------------- */
@@ -57,15 +95,18 @@ package com.sovrn.video {
         }
 
         public function startAd():void {
+            video.play(_config.mediaFiles[0].MediaFile);
         }
 
         public function stopAd():void {
         }
 
         public function pauseAd():void {
+            video.pause();
         }
 
         public function resumeAd():void {
+            video.resume();
         }
 
         /* --------------------------- */

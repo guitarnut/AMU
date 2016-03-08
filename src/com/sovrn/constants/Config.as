@@ -17,11 +17,15 @@ package com.sovrn.constants {
 
         public static const VIDEO_BUFFER_TIME:Number = 5;
 
-        public static const COMPATIBLE_MIMES:Array = [
+        public static const COMPATIBLE_VIDEO_MIMES:Array = [
             'video/mp4',
             'video/flv',
             'application/vpaid',
             'application/swf'
+        ];
+
+        public static const COMPATIBLE_VPAID_MIMES:Array = [
+                'application/x-shockwave-flash'
         ];
 
         public static const TIMEOUTS:Object = {

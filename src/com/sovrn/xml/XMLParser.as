@@ -4,6 +4,7 @@ package com.sovrn.xml {
     import com.sovrn.constants.VASTSchema;
     import com.sovrn.constants.WrapperSchema;
     import com.sovrn.model.AdVO;
+    import com.sovrn.model.MediaFileVO;
     import com.sovrn.net.GETRequest;
     import com.sovrn.utils.Console;
 
@@ -11,10 +12,6 @@ package com.sovrn.xml {
     import flash.events.Event;
 
     import mx.utils.StringUtil;
-
-    /*
-     private var _VASTVersion:String;
-     */
 
     public class XMLParser extends Sprite {
         private var wrapperLimit:Number;
@@ -28,6 +25,7 @@ package com.sovrn.xml {
         private var trackingEvents:Object;
         private var clickTracking:Array;
         private var mediaFiles:Array;
+        private var mediaFileData:Array;
         private var wrapper:GETRequest;
 
         public function XMLParser() {
@@ -40,6 +38,7 @@ package com.sovrn.xml {
             trackingEvents = {};
             clickTracking = [];
             mediaFiles = [];
+            mediaFileData = [];
         }
 
         public function init(xml:*, slot:int = -1):void {
@@ -111,14 +110,23 @@ package com.sovrn.xml {
             return values;
         }
 
-        private function storeData(node:String, value:String, attributes:Object):void {
+        private function storeData(node:String, value:String, nodeObject:Object):void {
             value = StringUtil.trim(value);
 
             switch (node) {
                 // multiple values
                 case 'MediaFile':
-                    attributes['MediaFile'] = value;
-                    mediaFiles.push(attributes);
+                    var data:MediaFileVO = new MediaFileVO();
+                    nodeObject['MediaFile'] = value;
+                    mediaFiles.push(nodeObject);
+
+                    if (nodeObject.height) data.height = nodeObject.height;
+                    if (nodeObject.width) data.width = nodeObject.width;
+                    if (nodeObject.delivery) data.delivery = nodeObject.delivery;
+                    if (nodeObject.type) data.type = nodeObject.type;
+                    if (nodeObject.apiFramework) data.apiFramework = nodeObject.apiFramework;
+
+                    mediaFileData.push(data);
                     break;
                 case 'AdSystem':
                     adSystem.push(value);
@@ -133,11 +141,11 @@ package com.sovrn.xml {
                     errors.push(value);
                     break;
                 case 'Tracking':
-                    if (trackingEvents.hasOwnProperty(attributes.event)) {
-                        trackingEvents[attributes.event].push(value);
+                    if (trackingEvents.hasOwnProperty(nodeObject.event)) {
+                        trackingEvents[nodeObject.event].push(value);
                     } else {
-                        trackingEvents[attributes.event] = [];
-                        trackingEvents[attributes.event].push(value);
+                        trackingEvents[nodeObject.event] = [];
+                        trackingEvents[nodeObject.event].push(value);
                     }
                     break;
                 case 'ClickTracking':
@@ -145,7 +153,7 @@ package com.sovrn.xml {
                     break;
                 // single values
                 case 'Ad':
-                    adData.tid = attributes.tid;
+                    adData.tid = nodeObject.tid;
                     break;
                 case 'ClickThrough':
                     adData.clickThrough = value;
@@ -211,6 +219,7 @@ package com.sovrn.xml {
             adData.trackingEvents = trackingEvents;
             adData.clickTracking = clickTracking;
             adData.mediaFiles = mediaFiles;
+            adData.mediaFileData = mediaFileData;
 
             dispatchEvent(new Event(Event.COMPLETE));
         }

@@ -9,6 +9,8 @@ package com.sovrn.video {
     import flash.net.NetConnection;
     import flash.net.NetStream;
 
+    import vpaid.VPAIDEvent;
+
     public class VideoPlayer extends Sprite {
 
         private var video:Video;
@@ -32,11 +34,11 @@ package com.sovrn.video {
             video.attachNetStream(ns);
             video.x = 0;
             video.y = 0;
-            video.width = w;
-            video.height = h;
+            video.smoothing = true;
 
             aspectRatio = w / h;
 
+            resize(w, h, "");
             addChild(video);
         }
 
@@ -46,6 +48,17 @@ package com.sovrn.video {
 
         private function handleNetStatusEvent(e:NetStatusEvent):void {
             Console.log(e.info.code);
+
+            switch (e.info.code) {
+                case 'NetStream.Play.Start':
+                    dispatchEvent(new VPAIDEvent(VPAIDEvent.AdStarted));
+                    dispatchEvent(new VPAIDEvent(VPAIDEvent.AdImpression));
+                    break;
+                case 'NetStream.Play.Stop':
+                    dispatchEvent(new VPAIDEvent(VPAIDEvent.AdVideoComplete));
+                    dispatchEvent(new VPAIDEvent(VPAIDEvent.AdStopped));
+                    break;
+            }
         }
 
         public function play(file:String):void {
@@ -53,28 +66,34 @@ package com.sovrn.video {
         }
 
         public function pause():void {
+            ns.pause();
+        }
 
+        public function resume():void {
+            ns.resume();
         }
 
         public function stop():void {
-
+            ns = null;
         }
 
-        public function resize(w:Number, h:Number):void {
+        public function resize(w:Number, h:Number, viewMode:String):void {
             var xOffset:Number = 0;
             var yOffset:Number = 0;
             var originalWidth:Number = w;
             var originalHeight:Number = h;
 
-            if (Math.floor(w / aspectRatio) > h) {
-                Console.log('height exceeds display area, adjusting width');
-                w = h * aspectRatio;
-                xOffset = Math.abs(Math.round((originalWidth - w) / 2));
-            } else if (Math.floor(h * aspectRatio) > w) {
-                Console.log('width exceeds display area, adjusting height');
-                h = w / aspectRatio;
-                yOffset = Math.abs(Math.round((originalHeight - h) / 2));
-            }
+            /*
+             if (Math.floor(w / aspectRatio) > h) {
+             Console.log('height exceeds display area, adjusting width');
+             w = h * aspectRatio;
+             xOffset = Math.abs(Math.round((originalWidth - w) / 2));
+             } else if (Math.floor(h * aspectRatio) > w) {
+             Console.log('width exceeds display area, adjusting height');
+             h = w / aspectRatio;
+             yOffset = Math.abs(Math.round((originalHeight - h) / 2));
+             }
+             */
 
             video.width = w;
             video.height = h;

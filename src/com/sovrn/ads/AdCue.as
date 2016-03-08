@@ -112,7 +112,6 @@ package com.sovrn.ads {
          ------------------------ */
 
         public function next():void {
-            Console.log('next source');
             removeListeners(currentAd);
             currentAd.destroy();
             ads.splice(0, 1);

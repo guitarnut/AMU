@@ -7,7 +7,6 @@ package com.sovrn.model {
         private var _VASTVersion:String;
         private var _adSystem:Array;
         private var _adTitle:Array;
-        private var _sovrnImpression:String;
         private var _impressions:Array;
         private var _errors:Array;
         private var _clickThrough:String;
@@ -16,6 +15,7 @@ package com.sovrn.model {
         private var _duration:String;
         private var _adParameters:String;
         private var _mediaFiles:Array;
+        private var _mediaFileData:Array;
         private var _tid:String;
         private var _campaignId:int;
         private var _cb:String;
@@ -64,14 +64,6 @@ package com.sovrn.model {
 
         public function get adTitle():Array {
             return _adTitle;
-        }
-
-        public function set sovrnImpression(val:String):void {
-            if(!_sovrnImpression) _sovrnImpression = val;
-        }
-
-        public function get sovrnImpression():String {
-            return _sovrnImpression;
         }
 
         public function set impressions(val:Array):void {
@@ -136,6 +128,14 @@ package com.sovrn.model {
 
         public function get mediaFiles():Array {
             return _mediaFiles;
+        }
+
+        public function set mediaFileData(val:Array):void {
+            if(!_mediaFileData) _mediaFileData = val;
+        }
+
+        public function get mediaFileData():Array {
+            return _mediaFileData;
         }
 
         public function set tid(val:String):void {
