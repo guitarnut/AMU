@@ -16,6 +16,9 @@ package com.sovrn.video.view {
             icon.x = -1 * asset.width / 2;
             icon.y = -1 * asset.height / 2;
 
+            buttonMode = true;
+            mouseChildren = false;
+
             addChild(icon);
         }
 

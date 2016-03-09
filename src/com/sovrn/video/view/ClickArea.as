@@ -9,6 +9,8 @@ package com.sovrn.video.view {
     import flash.net.URLRequest;
     import flash.net.navigateToURL;
 
+    import vpaid.VPAIDEvent;
+
     public class ClickArea extends Sprite {
 
         private var target:String;
@@ -29,6 +31,8 @@ package com.sovrn.video.view {
 
         private function handleClick(e:MouseEvent):void {
             e.stopImmediatePropagation();
+
+            dispatchEvent(new VPAIDEvent(VPAIDEvent.AdClickThru));
 
             removeEventListener(MouseEvent.CLICK, handleClick);
             buttonMode = false;

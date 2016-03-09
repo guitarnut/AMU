@@ -11,6 +11,7 @@ package com.sovrn.video {
     import flash.display.Sprite;
     import flash.events.NetStatusEvent;
     import flash.events.TimerEvent;
+    import flash.media.SoundTransform;
     import flash.media.Video;
     import flash.net.NetConnection;
     import flash.net.NetStream;
@@ -25,6 +26,7 @@ package com.sovrn.video {
         private var video:Video;
         private var nc:NetConnection;
         private var ns:NetStream;
+        private var videoVolume:SoundTransform;
         private var initWidth:Number;
         private var initHeight:Number;
         private var currentHeight:Number;
@@ -69,6 +71,10 @@ package com.sovrn.video {
                 ns.client = client;
                 ns.bufferTime = Config.VIDEO_BUFFER_TIME;
                 ns.addEventListener(NetStatusEvent.NET_STATUS, handleNetStatusEvent);
+
+                videoVolume = new SoundTransform();
+
+                volume = 0;
 
                 video = new Video();
                 video.attachNetStream(ns);
@@ -179,10 +185,12 @@ package com.sovrn.video {
 
         public function stop():void {
             pauseTimer();
+            ns.pause();
             nc.close();
             time = null;
             ns = null;
             nc = null;
+            video = null;
         }
 
         public function resize(w:Number, h:Number, viewMode:String = ""):void {
@@ -213,8 +221,13 @@ package com.sovrn.video {
             }
         }
 
-        public function changeVolume(v:Number):void {
-            // ns.soundTransform
+        public function set volume(v:Number):void {
+            videoVolume.volume = v;
+            ns.soundTransform = videoVolume;
+        }
+
+        public function get volume():Number {
+            return videoVolume.volume || 0;
         }
 
         public function get duration():Number {
@@ -222,7 +235,6 @@ package com.sovrn.video {
         }
 
         public function get currentTime():Number {
-            if (_duration) return (_duration + 1) - time.currentCount;
             return time.currentCount || 0;
         }
 

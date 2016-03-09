@@ -1,6 +1,6 @@
 package {
 
-// http://ap.rh.lijit.com/www/admanager/Sovrn.swf?zoneid=1&vtid=2&u=3
+// http://ap.rh.lijit.com/www/admanager/Sovrn.swf?zoneid=1&vtid=2&u=3&datafile=wf2&ljt=ap.rh.lijit.com
 // http://ap.rh.lijit.com/addelivery?datafile=admanager
 
     import com.sovrn.ads.AdCall;

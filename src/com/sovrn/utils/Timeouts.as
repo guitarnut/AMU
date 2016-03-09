@@ -49,7 +49,6 @@ package com.sovrn.utils {
         private static var timeoutCue:Object = {};
 
         public static function setValues(params:Object):void {
-            Console.obj(params);
             for (var key:String in timeouts) {
                 if (params.hasOwnProperty(timeouts[key].param)) {
                     timeouts[key].value = Number(params[timeouts[key].param]);

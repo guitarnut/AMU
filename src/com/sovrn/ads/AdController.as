@@ -164,7 +164,7 @@ package com.sovrn.ads {
             switch (event) {
                 case VPAIDEvent.AdImpression:
                     // these events must always exist
-                    firePixels(impressions, event);
+                    firePixels(impressions, event, false);
                     break;
                 case VPAIDEvent.AdStarted:
                     if (trackingEvents.hasOwnProperty('start')) firePixels(trackingEvents.start, event);
@@ -195,15 +195,29 @@ package com.sovrn.ads {
             }
         }
 
-        private function firePixels(pixels:Array, event:String):void {
+        private function firePixels(pixels:Array, event:String, useLimit:Boolean = true):void {
             for (var i:Number = 0, len:Number = pixels.length; i < len; i++) {
-                if (i < Config.TRACKING_PIXEL_LIMIT) {
-                    Console.log(pixels[0]);
-                    new URLLoader().load(new URLRequest(pixels[0]));
+                if(useLimit) {
+                    if (i < Config.TRACKING_PIXEL_LIMIT) {
+                        try {
+                            Console.log(pixels[0]);
+                            new URLLoader().load(new URLRequest(pixels[0]));
+                        } catch (e:Error) {
+                            //
+                        }
+                    } else {
+                        Console.log('pixel limit reached for event ' + event);
+                        break;
+                    }
                 } else {
-                    Console.log('pixel limit reached for event ' + event);
-                    break;
+                    try {
+                        Console.log(pixels[0]);
+                        new URLLoader().load(new URLRequest(pixels[0]));
+                    } catch (e:Error) {
+                        //
+                    }
                 }
+
             }
         }
 
@@ -231,15 +245,12 @@ package com.sovrn.ads {
                 try {
                     switch (property) {
                         case 'get':
-                            //Console.log('get');
                             return adInstance[method];
                             break;
                         case 'set':
-                            //Console.log('set');
                             adInstance[method] = arguments[0];
                             break;
                         default:
-                            //Console.log('default');
                             adInstance[method].apply(adInstance, arguments);
                             break;
                     }
@@ -285,6 +296,12 @@ package com.sovrn.ads {
                 case AdCueEvent.AD_CUE_TIMEOUT:
                     result = AdSourceResult.TIMEOUT;
                     break;
+            }
+
+            try {
+                _view.cleanup();
+            } catch (e:Error) {
+                //
             }
 
             logSourceResult(result, e.data.ad_data);

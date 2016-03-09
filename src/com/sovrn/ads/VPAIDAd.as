@@ -151,6 +151,8 @@ package com.sovrn.ads {
                     dispatchEvent(new AdInstanceEvent(AdInstanceEvent.AdLoaded));
                     break;
                 case VPAIDEvent.AdError:
+                    Timeouts.stop(Timeouts.LOAD_AD);
+                    Timeouts.stop(Timeouts.AD_SESSION);
                     dispatchEvent(new AdInstanceEvent(AdInstanceEvent.AdError));
                     break;
                 case VPAIDEvent.AdStopped:

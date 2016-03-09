@@ -71,24 +71,26 @@ package com.sovrn.vpaid {
             switch (e.type) {
                 case VPAIDEvent.AdError:
                     Log.msg(Log.AD_ERROR);
-                    dispatchEvent(new VPAIDEvent(VPAIDEvent.AdError));
+                    Timeouts.start(Timeouts.DESTROY, dispatchFinalEvent, this, [VPAIDEvent.AdError]);
                     break;
                 case VPAIDEvent.AdLoaded:
                     Log.msg(Log.AD_LOADED);
+                    Timeouts.stop(Timeouts.AD_MANAGER_SESSION);
                     dispatchEvent(new VPAIDEvent(VPAIDEvent.AdLoaded));
                     break;
                 case VPAIDEvent.AdStopped:
-                    dispatchEvent(new VPAIDEvent(VPAIDEvent.AdStopped));
+                    Timeouts.start(Timeouts.DESTROY, dispatchFinalEvent, this, [VPAIDEvent.AdStopped]);
                     break;
                 case VPAIDEvent.AdImpression:
                     Timeouts.stop(Timeouts.AD_MANAGER_SESSION);
+                    dispatchEvent(new VPAIDEvent(VPAIDEvent.AdImpression));
                     break;
             }
         }
 
         // this ends the session
         public function fireAdError(error:Number = 0):void {
-            switch(error) {
+            switch (error) {
                 case Errors.ADDELIVERY_TIMEOUT:
                     Log.msg(Log.AD_DELIVERY_TIMEOUT);
                     break;
@@ -111,6 +113,8 @@ package com.sovrn.vpaid {
         }
 
         public function initAd(width:Number, height:Number, viewMode:String, desiredBitrate:Number, creativeData:String = "", environmentVars:String = ""):void {
+            Timeouts.start(Timeouts.AD_MANAGER_SESSION, fireAdError, this, []);
+
             dispatchEvent(new AdManagerEvent(AdManagerEvent.INIT_AD_CALLED, {
                 width: width,
                 height: height,
@@ -119,8 +123,6 @@ package com.sovrn.vpaid {
                 creativeData: creativeData,
                 environmentVars: environmentVars
             }));
-
-            Timeouts.start(Timeouts.AD_MANAGER_SESSION, fireAdError, this, []);
         }
 
         /* ------ getters / setters ----------------------------------------- */
@@ -162,6 +164,7 @@ package com.sovrn.vpaid {
         }
 
         public function startAd():void {
+            Timeouts.start(Timeouts.AD_MANAGER_SESSION, fireAdError, this, []);
             _adController.callAdMethod('startAd');
         }
 

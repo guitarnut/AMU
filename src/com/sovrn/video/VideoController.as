@@ -11,6 +11,7 @@ package com.sovrn.video {
 
     import flash.display.Sprite;
     import flash.events.Event;
+    import flash.events.MouseEvent;
 
     import vpaid.IVPAID;
     import vpaid.VPAIDEvent;
@@ -21,6 +22,7 @@ package com.sovrn.video {
         private var muteButton:MuteButton;
         private var playButton:PlayButton;
         private var text:TextMessage;
+        private var volume:Number = 1;
         private var _view:Canvas;
         private var _data:AdVO;
         private var _mediaFileVOs:Array;
@@ -50,13 +52,16 @@ package com.sovrn.video {
         }
 
         private function handleEvents(e:Event):void {
-            dispatchEvent(new VPAIDEvent(e.type));
-
-            switch(e.type) {
+            switch (e.type) {
                 case VPAIDEvent.AdRemainingTimeChange:
-                    updateTime(video.currentTime);
+                    updateTime(video.duration - video.currentTime);
+                    break;
+                case VPAIDEvent.AdError:
+                    removeEvents();
                     break;
             }
+
+            dispatchEvent(new VPAIDEvent(e.type));
         }
 
         private function positionAssets():void {
@@ -73,11 +78,33 @@ package com.sovrn.video {
         }
 
         private function updateTime(time:Number):void {
-            if(text) {
-                text.x = _view.width - 15;
+            if (text) {
                 text.show();
-                text.update(String(time));
+                text.update(formatTime(time));
+                text.x = _view.width - text.width - 5;
             }
+        }
+
+        private function formatTime(time:Number):String {
+            var seconds:String = String(time % 60);
+            var minutes:String = String(Math.floor(time / 60));
+            if (seconds.length == 1) seconds = "0" + seconds;
+            return minutes + ":" + seconds;
+        }
+
+        private function handleMuteClick(e:MouseEvent):void {
+            e.stopImmediatePropagation();
+
+            if (muteButton.isMuted) {
+                video.volume = 0;
+            } else {
+                video.volume = volume;
+            }
+        }
+
+        private function handlePlayClick(e:MouseEvent):void {
+            e.stopImmediatePropagation();
+            startAd();
         }
 
         /* ----------------------------------------- */
@@ -97,16 +124,23 @@ package com.sovrn.video {
             addEvents();
 
             video.init();
+            video.volume = volume;
+
             _view.addChild(video);
 
             text = new TextMessage();
             text.update("Advertisement");
             text.show();
+
             _view.addChild(text);
 
             muteButton = new MuteButton();
+            muteButton.addEventListener(MouseEvent.CLICK, handleMuteClick);
+            muteButton.volume(volume);
 
             playButton = new PlayButton();
+            playButton.addEventListener(MouseEvent.CLICK, handlePlayClick);
+
             _view.addChild(playButton);
 
             positionAssets();
@@ -123,14 +157,17 @@ package com.sovrn.video {
         }
 
         public function get adRemainingTime():Number {
-            return -2;
+            return video.duration - video.currentTime || -2;
         }
 
         public function get adVolume():Number {
-            return 0;
+            return video.volume;
         }
 
         public function set adVolume(val:Number):void {
+            if (muteButton) muteButton.volume(val);
+            if (video) video.volume = val;
+            volume = val;
         }
 
         /* ------ layout methods ----------------------------------------- */
@@ -157,6 +194,7 @@ package com.sovrn.video {
         }
 
         public function stopAd():void {
+            _view.cleanup();
             video.stop();
         }
 
@@ -192,7 +230,7 @@ package com.sovrn.video {
         }
 
         public function get adDuration():Number {
-            return -2;
+            return video.duration || -2;
         }
 
         public function get adCompanions():String {
