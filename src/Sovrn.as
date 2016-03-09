@@ -9,6 +9,7 @@ package {
     import com.sovrn.events.AdManagerEvent;
     import com.sovrn.model.ApplicationVO;
     import com.sovrn.net.Beacon;
+    import com.sovrn.net.Log;
     import com.sovrn.utils.Console;
     import com.sovrn.utils.ExternalMethods;
     import com.sovrn.utils.ObjectTools;
@@ -82,9 +83,7 @@ package {
         }
 
         private function uncaughtErrorHandler(e:UncaughtErrorEvent):void {
-            Console.log('UncaughtError:');
-
-            var message:String;
+            var message:String = "";
 
             if (e.error is Error) {
                 message = Error(e.error).message;
@@ -96,7 +95,7 @@ package {
                 message = e.error.toString();
             }
 
-            Console.log(message);
+            Console.log('UncaughtError: ' + message);
         }
 
         public function getVPAID():* {
@@ -130,8 +129,18 @@ package {
                 applicationConfig.trueDomain = StringTools.domain(applicationConfig.trueLoc);
                 applicationConfig.view = view;
 
+                Log.init(applicationConfig);
+                Log.custom({
+                    orig_loc: applicationConfig.publisherLoc,
+                    loc: applicationConfig.trueLoc,
+                    domain: applicationConfig.trueDomain,
+                    width: params.width || "undefined",
+                    height: params.height || "undefined"
+                });
+
                 if (validateConfig()) {
                     Console.log("config complete");
+                    Log.msg(Log.AD_MANAGER_INITIALIZED, "session_" + session);
                     getAds();
                 } else {
                     Console.log("invalid config");
@@ -159,6 +168,8 @@ package {
         private function serveAds(e:*):void {
             switch (e.type) {
                 case AdManagerEvent.AD_DELIVERY_COMPLETE:
+                    Log.msg(Log.AD_DELIVERY_COMPLETE);
+
                     adCall.removeEventListener(AdManagerEvent.AD_DELIVERY_COMPLETE, serveAds);
                     adCall = null;
                     adController.ads = e.data.ads;
@@ -199,7 +210,8 @@ package {
         }
 
         private function end(e:Event = null):void {
-            Console.log('end() called');
+            if (e.type == VPAIDEvent.AdError) Log.msg(Log.END_SESSION);
+            if (e.type == VPAIDEvent.AdStopped && !adController.impression) Log.msg(Log.END_SESSION);
 
             if (sessionStarted) {
                 sessionStarted = false;

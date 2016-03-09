@@ -4,6 +4,7 @@ package com.sovrn.vpaid {
     import com.sovrn.constants.AdVPAIDEvents;
     import com.sovrn.constants.Config;
     import com.sovrn.events.AdManagerEvent;
+    import com.sovrn.net.Log;
     import com.sovrn.utils.Console;
 
     import flash.display.Sprite;
@@ -65,9 +66,11 @@ package com.sovrn.vpaid {
 
             switch (e.type) {
                 case VPAIDEvent.AdError:
+                    Log.msg(Log.AD_ERROR);
                     dispatchEvent(new VPAIDEvent(VPAIDEvent.AdError));
                     break;
                 case VPAIDEvent.AdLoaded:
+                    Log.msg(Log.AD_LOADED);
                     dispatchEvent(new VPAIDEvent(VPAIDEvent.AdLoaded));
                     break;
                 case VPAIDEvent.AdStopped:

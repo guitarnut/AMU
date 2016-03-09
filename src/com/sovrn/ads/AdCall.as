@@ -20,7 +20,7 @@ package com.sovrn.ads {
         public function sendRequest():void {
             var load:URLLoader = new URLLoader();
             load.addEventListener(Event.COMPLETE, getSources);
-            load.load(new URLRequest('//ap.rh.lijit.com/addelivery?datafile=wf1'));
+            load.load(new URLRequest('//ap.rh.lijit.com/addelivery?datafile=wf2'));
             //load.load(new URLRequest('http://ap.lijit.com/addelivery?u=matomymedia&zoneid=282267&vtid=v_282267uywerADff3sdf&loc=http://demo.jwplayer.com/ad-tester/'));
         }
 

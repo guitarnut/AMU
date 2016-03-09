@@ -1,5 +1,6 @@
 package com.sovrn.xml {
 
+    import com.sovrn.net.Log;
     import com.sovrn.utils.Console;
 
     import flash.display.Sprite;
@@ -22,7 +23,7 @@ package com.sovrn.xml {
             var children:XMLList = this.xml.children();
             sourceCount = children.length();
 
-            Console.log('found '+ sourceCount + ' sources');
+            Console.log('found ' + sourceCount + ' sources');
 
             var count:int = 0;
 
@@ -34,6 +35,7 @@ package com.sovrn.xml {
                     parser.init(source, count);
                     count++;
                 } catch (e:Error) {
+                    Log.msg(Log.VAST_PARSE_ERROR, e.toString());
                     sourceCount--;
                     parser.removeEventListener(Event.COMPLETE, storeAd);
                     Console.log(e.toString());

@@ -7,6 +7,7 @@ package com.sovrn.ads {
     import com.sovrn.model.AdVO;
     import com.sovrn.model.InitConfigVO;
     import com.sovrn.model.MediaFileVO;
+    import com.sovrn.net.Log;
     import com.sovrn.utils.Console;
     import com.sovrn.view.Canvas;
 
@@ -19,6 +20,7 @@ package com.sovrn.ads {
 
     public class AdController extends Sprite {
 
+        private var _impressionFired:Boolean = false;
         private var adCue:AdCue;
         private var _initConfig:InitConfigVO;
         private var adInstance:*;
@@ -30,6 +32,10 @@ package com.sovrn.ads {
 
         public function AdController():void {
             dispatcher = new EventDispatcher();
+        }
+
+        public function get impression():Boolean {
+            return _impressionFired;
         }
 
         public function set ads(ads:Array):void {
@@ -285,6 +291,8 @@ package com.sovrn.ads {
         }
 
         private function adImpression(e:AdCueEvent):void {
+            _impressionFired = true;
+            Log.msg(Log.AD_IMPRESSION);
             logSourceResult(AdSourceResult.IMPRESSION, e.data.ad_data);
         }
 
@@ -312,6 +320,7 @@ package com.sovrn.ads {
         public function reset():void {
             removeListeners(adCue);
 
+            _impressionFired = false;
             adCue = null;
             adInstance = null;
             trackingEvents = null;
