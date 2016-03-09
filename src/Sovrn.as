@@ -156,16 +156,18 @@ package {
                 applicationConfig.view = view;
 
                 Log.init(applicationConfig);
-                Log.custom({
-                    orig_loc: applicationConfig.publisherLoc,
-                    loc: applicationConfig.trueLoc,
-                    domain: applicationConfig.trueDomain,
-                    width: params.width || "undefined",
-                    height: params.height || "undefined"
-                });
 
                 if (validateConfig()) {
                     Log.msg(Log.AD_MANAGER_INITIALIZED, "session_" + session);
+
+                    Log.custom({
+                        orig_loc: applicationConfig.publisherLoc,
+                        loc: applicationConfig.trueLoc,
+                        domain: applicationConfig.trueDomain,
+                        width: params.width || "undefined",
+                        height: params.height || "undefined"
+                    });
+
                     getAds();
                 } else {
                     Console.log("invalid config");

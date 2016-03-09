@@ -23,6 +23,10 @@ package com.sovrn.net {
         public static var AD_ERROR:String = "AD_ERROR";
         public static var AD_IMPRESSION:String = "AD_IMPRESSION";
 
+        public static var AD_SOURCE_IMPRESSION:String = "AD_SOURCE_IMPRESSION";
+        public static var AD_SOURCE_ERROR:String = "AD_SOURCE_ERROR";
+        public static var AD_SOURCE_TIMEOUT:String = "AD_SOURCE_TIMEOUT";
+
         public static var VAST_PARSE_ERROR:String = "VAST_PARSE_ERROR";
 
         public static var MEDIA_FILE_LOAD_TIMEOUT:String = "MEDIA_FILE_LOAD_TIMEOUT";
@@ -67,6 +71,24 @@ package com.sovrn.net {
                 case AD_IMPRESSION:
                     send(event("AdImpression", data));
                     break;
+                case AD_SOURCE_IMPRESSION:
+                    custom({
+                        result: "imp",
+                        vpaidEventData: data
+                    });
+                    break;
+                case AD_SOURCE_ERROR:
+                    custom({
+                        result: "error",
+                        vpaidEventData: data
+                    });
+                    break;
+                case AD_SOURCE_TIMEOUT:
+                    custom({
+                        result: "timeout",
+                        vpaidEventData: data
+                    });
+                    break;
                 case VAST_PARSE_ERROR:
                     send(error(Errors.VAST_PARSE_ERROR, data));
                     break;
@@ -83,7 +105,7 @@ package com.sovrn.net {
         }
 
         public static function custom(params:Object):void {
-
+            send(params);
         }
 
         private static function signature():String {

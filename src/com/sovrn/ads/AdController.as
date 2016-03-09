@@ -312,7 +312,17 @@ package com.sovrn.ads {
          ------------------------ */
 
         private function logSourceResult(event:String, data:AdVO):void {
-            Console.log(event + ", " + data.campaignId);
+            switch (event) {
+                case AdSourceResult.IMPRESSION:
+                    Log.msg(Log.AD_SOURCE_IMPRESSION, String(data.campaignId));
+                    break;
+                case AdSourceResult.ERROR:
+                    Log.msg(Log.AD_SOURCE_ERROR, String(data.campaignId));
+                    break;
+                case AdSourceResult.TIMEOUT:
+                    Log.msg(Log.AD_SOURCE_TIMEOUT, String(data.campaignId));
+                    break;
+            }
         }
 
         /* ------------------------

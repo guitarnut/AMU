@@ -1,8 +1,11 @@
 package com.sovrn.video {
 
     import com.sovrn.constants.Config;
+    import com.sovrn.constants.Errors;
     import com.sovrn.model.MediaFileVO;
+    import com.sovrn.net.Log;
     import com.sovrn.utils.Console;
+    import com.sovrn.utils.Timeouts;
     import com.sovrn.video.view.ClickArea;
 
     import flash.display.Sprite;
@@ -52,7 +55,7 @@ package com.sovrn.video {
             });
 
             if (mediaFileCollection.length == 0) {
-                //
+                fireAdError(Errors.VAST_MEDIA_FILE_ERROR);
             } else {
                 selectFile();
 
@@ -88,8 +91,23 @@ package com.sovrn.video {
                 resize(initWidth, initHeight);
                 dispatchEvent(new VPAIDEvent(VPAIDEvent.AdLoaded));
             } else {
-                dispatchEvent(new VPAIDEvent(VPAIDEvent.AdError));
+                fireAdError();
             }
+        }
+
+        private function fireAdError(error:Number = 0):void {
+            errorFired = true;
+
+            switch (error) {
+                case Errors.VAST_MEDIA_FILE_ERROR:
+                    Log.msg(Log.MEDIA_FILE_TYPE_ERROR);
+                    break;
+                case Errors.LOAD_ADMANAGER_TIMEOUT:
+                    Log.msg(Log.MEDIA_FILE_LOAD_TIMEOUT);
+                    break;
+            }
+
+            dispatchEvent(new VPAIDEvent(VPAIDEvent.AdError));
         }
 
         private function onMetaData(data:Object):void {
@@ -101,6 +119,8 @@ package com.sovrn.video {
 
             switch (e.info.code) {
                 case 'NetStream.Play.Start':
+                    startTimer();
+                    Timeouts.stop(Timeouts.LOAD_VIDEO);
                     setTimeout(function ():void {
                         if (!errorFired) {
                             dispatchEvent(new VPAIDEvent(VPAIDEvent.AdStarted));
@@ -141,8 +161,8 @@ package com.sovrn.video {
 
         public function play():void {
             Console.obj(mediaFileVO);
+            Timeouts.start(Timeouts.LOAD_VIDEO, fireAdError, this, [Errors.LOAD_ADMANAGER_TIMEOUT]);
             ns.play(mediaFileVO.mediaFile);
-            startTimer();
         }
 
         public function pause():void {

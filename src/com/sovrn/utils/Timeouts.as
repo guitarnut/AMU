@@ -72,6 +72,7 @@ package com.sovrn.utils {
                 var t:Timer = new Timer(getValue(name));
 
                 t.addEventListener(TimerEvent.TIMER_COMPLETE, function (e:TimerEvent):void {
+                    Console.log('timeout ' + name + ' fired');
                     callback.apply(context, args);
                 });
 
