@@ -51,6 +51,33 @@ package com.sovrn.video {
 
         private function handleEvents(e:Event):void {
             dispatchEvent(new VPAIDEvent(e.type));
+
+            switch(e.type) {
+                case VPAIDEvent.AdRemainingTimeChange:
+                    updateTime(video.currentTime);
+                    break;
+            }
+        }
+
+        private function positionAssets():void {
+            text.x = 3;
+            text.y = 3;
+
+            muteButton.x = 3;
+            muteButton.y = 1;
+            muteButton.width = 30;
+            muteButton.height = 25;
+
+            playButton.x = _view.width / 2 - playButton.width / 2;
+            playButton.y = _view.height / 2 - playButton.height / 2;
+        }
+
+        private function updateTime(time:Number):void {
+            if(text) {
+                text.x = _view.width - 15;
+                text.show();
+                text.update(String(time));
+            }
         }
 
         /* ----------------------------------------- */
@@ -83,19 +110,6 @@ package com.sovrn.video {
             _view.addChild(playButton);
 
             positionAssets();
-        }
-
-        private function positionAssets():void {
-            text.x = 3;
-            text.y = 3;
-
-            muteButton.x = 3;
-            muteButton.y = 1;
-            muteButton.width = 30;
-            muteButton.height = 25;
-
-            playButton.x = _view.width / 2 - playButton.width / 2;
-            playButton.y = _view.height / 2 - playButton.height / 2;
         }
 
         /* ------ getters / setters ----------------------------------------- */
@@ -138,11 +152,12 @@ package com.sovrn.video {
         public function startAd():void {
             _view.removeChild(playButton);
             _view.addChild(muteButton);
-            _view.removeChild(text);
+            text.hide();
             video.play();
         }
 
         public function stopAd():void {
+            video.stop();
         }
 
         public function pauseAd():void {

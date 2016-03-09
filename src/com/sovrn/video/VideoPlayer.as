@@ -7,9 +7,11 @@ package com.sovrn.video {
 
     import flash.display.Sprite;
     import flash.events.NetStatusEvent;
+    import flash.events.TimerEvent;
     import flash.media.Video;
     import flash.net.NetConnection;
     import flash.net.NetStream;
+    import flash.utils.Timer;
     import flash.utils.setTimeout;
 
     import vpaid.VPAIDEvent;
@@ -28,6 +30,7 @@ package com.sovrn.video {
         private var mediaFileCollection:Array;
         private var mediaFileVO:MediaFileVO;
         private var clickArea:ClickArea;
+        private var time:Timer;
         private var _clickThrough:String;
         private var _clickTracking:Array;
         private var _bitrate:Number;
@@ -38,6 +41,9 @@ package com.sovrn.video {
             mediaFileCollection = [];
             initWidth = w;
             initHeight = h;
+
+            time = new Timer(1000, 0);
+            time.addEventListener(TimerEvent.TIMER, tick);
 
             files.map(function (val:MediaFileVO, index:Number, array:Array):void {
                 if ((Config.COMPATIBLE_VIDEO_MIMES.indexOf(val.type) != -1) && (val.delivery.toLowerCase() == Config.VIDEO_DELIVERY)) {
@@ -121,21 +127,40 @@ package com.sovrn.video {
             });
         }
 
+        private function startTimer():void {
+            time.start();
+        }
+
+        private function tick(e:TimerEvent):void {
+            dispatchEvent(new VPAIDEvent(VPAIDEvent.AdRemainingTimeChange));
+        }
+
+        private function pauseTimer():void {
+            time.stop();
+        }
+
         public function play():void {
             Console.obj(mediaFileVO);
             ns.play(mediaFileVO.mediaFile);
+            startTimer();
         }
 
         public function pause():void {
+            dispatchEvent(new VPAIDEvent(VPAIDEvent.AdPaused));
             ns.pause();
+            pauseTimer();
         }
 
         public function resume():void {
+            dispatchEvent(new VPAIDEvent(VPAIDEvent.AdPlaying));
             ns.resume();
+            startTimer();
         }
 
         public function stop():void {
+            pauseTimer();
             nc.close();
+            time = null;
             ns = null;
             nc = null;
         }
@@ -173,11 +198,12 @@ package com.sovrn.video {
         }
 
         public function get duration():Number {
-            return _duration || 0;
+            return _duration || -2;
         }
 
-        public function get time():Number {
-            return 0;
+        public function get currentTime():Number {
+            if (_duration) return (_duration + 1) - time.currentCount;
+            return time.currentCount || 0;
         }
 
         public function set bitrate(val:Number):void {

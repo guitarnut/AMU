@@ -6,6 +6,7 @@ package com.sovrn.video.view {
     import flash.text.TextFieldAutoSize;
     import flash.text.TextFieldType;
     import flash.text.TextFormat;
+    import flash.text.TextFormatAlign;
 
     public class TextMessage extends Sprite {
 
@@ -14,6 +15,7 @@ package com.sovrn.video.view {
 
         public function TextMessage() {
             textFormat=new TextFormat();
+            textFormat.align = TextFormatAlign.RIGHT;
             textFormat.size = 11;
 
             textbox = new TextField();
