@@ -5,6 +5,7 @@ package com.sovrn.net {
     import com.sovrn.model.ApplicationVO;
     import com.sovrn.utils.Console;
     import com.sovrn.utils.ObjectTools;
+    import com.sovrn.utils.Stats;
 
     import flash.net.URLLoader;
 
@@ -90,7 +91,7 @@ package com.sovrn.net {
                 vtid: config.vtid,
                 zoneid: config.zoneId,
                 u: config.publisherId,
-                runtime: 0
+                runtime: Stats.elapsedTime("ad manager")
             };
 
             return ObjectTools.paramString(data);

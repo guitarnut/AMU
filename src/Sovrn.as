@@ -6,6 +6,7 @@ package {
     import com.sovrn.ads.AdCall;
     import com.sovrn.ads.AdController;
     import com.sovrn.constants.Config;
+    import com.sovrn.constants.Errors;
     import com.sovrn.events.AdManagerEvent;
     import com.sovrn.model.ApplicationVO;
     import com.sovrn.net.Beacon;
@@ -13,7 +14,9 @@ package {
     import com.sovrn.utils.Console;
     import com.sovrn.utils.ExternalMethods;
     import com.sovrn.utils.ObjectTools;
+    import com.sovrn.utils.Stats;
     import com.sovrn.utils.StringTools;
+    import com.sovrn.utils.Timeouts;
     import com.sovrn.view.Canvas;
     import com.sovrn.vpaid.VPAIDWrapper;
 
@@ -49,6 +52,8 @@ package {
             Security.allowDomain("*");
             Security.allowInsecureDomain("*");
 
+            Stats.timeThis("ad manager");
+
             try {
                 loaderInfo.uncaughtErrorEvents.addEventListener(UncaughtErrorEvent.UNCAUGHT_ERROR, uncaughtErrorHandler);
             } catch (e:Error) {
@@ -63,19 +68,17 @@ package {
             adController = new AdController();
             com.sovrn.vpaid.VPAIDWrapper(vpaid).controller = adController;
 
-            view = new Canvas();
-            view.x = 0;
-            view.y = 0;
-            view.show();
-            addChild(view);
+            setupStage();
 
-            addEventListener(Event.ADDED_TO_STAGE, setupView);
+            addEventListener(Event.ADDED_TO_STAGE, addedToStage);
 
             initCalled = false;
             adDeliveryCalled = false;
             session = 1;
 
-            Console.log("initializing");
+            Console.log("---------------------------------");
+            Console.log("Sovrn Ad Manager");
+            Console.log("---------------------------------");
 
             if (ExternalMethods.available()) ExternalMethods.inject(new js().toString());
 
@@ -103,8 +106,29 @@ package {
             return vpaid;
         }
 
-        private function setupView(e:Event):void {
-            removeEventListener(Event.ADDED_TO_STAGE, setupView);
+        private function fireAdError(error:Number = 0):void {
+            com.sovrn.vpaid.VPAIDWrapper(vpaid).fireAdError(error);
+        }
+
+        private function setupStage():void {
+            if (view) {
+                view.cleanup();
+                removeChild(view);
+                view = new Canvas();
+                view.hide();
+                addChild(view);
+                applicationConfig.view = view;
+            } else {
+                view = new Canvas();
+                view.x = 0;
+                view.y = 0;
+                view.show();
+                addChild(view);
+            }
+        }
+
+        private function addedToStage(e:Event):void {
+            removeEventListener(Event.ADDED_TO_STAGE, addedToStage);
 
             this.stage.align = StageAlign.TOP_LEFT;
             this.stage.scaleMode = StageScaleMode.NO_SCALE;
@@ -115,6 +139,8 @@ package {
         private function config():void {
             if (this.loaderInfo.parameters) {
                 var params:Object = this.loaderInfo.parameters;
+
+                Timeouts.setValues(params);
 
                 applicationConfig = new ApplicationVO();
                 applicationConfig.parameters = params || {};
@@ -139,7 +165,6 @@ package {
                 });
 
                 if (validateConfig()) {
-                    Console.log("config complete");
                     Log.msg(Log.AD_MANAGER_INITIALIZED, "session_" + session);
                     getAds();
                 } else {
@@ -160,6 +185,7 @@ package {
         }
 
         private function getAds():void {
+            Timeouts.start(Timeouts.AD_DELIVERY_CALL, fireAdError, vpaid, [Errors.ADDELIVERY_TIMEOUT]);
             adCall = new AdCall(applicationConfig);
             adCall.addEventListener(AdManagerEvent.AD_DELIVERY_COMPLETE, serveAds);
             adCall.sendRequest();
@@ -168,6 +194,7 @@ package {
         private function serveAds(e:*):void {
             switch (e.type) {
                 case AdManagerEvent.AD_DELIVERY_COMPLETE:
+                    Timeouts.stop(Timeouts.AD_DELIVERY_CALL);
                     Log.msg(Log.AD_DELIVERY_COMPLETE);
 
                     adCall.removeEventListener(AdManagerEvent.AD_DELIVERY_COMPLETE, serveAds);
@@ -183,7 +210,7 @@ package {
                         initCalled = true;
                         view.resize(e.data.width, e.data.height);
 
-                        Console.log("initAd() called -\n" + ObjectTools.values(e.data));
+                        Console.log(ObjectTools.values(e.data));
 
                         if (session > 1 && !adDeliveryCalled) getAds();
                     }
@@ -200,7 +227,7 @@ package {
 
                     adLoaded = true;
 
-                    Console.log('sources loaded and initAd() called, starting VPAID');
+                    Console.log('starting VPAID');
 
                     view.show();
                     adController.view = applicationConfig.view;
@@ -218,17 +245,10 @@ package {
                 initCalled = false;
                 adDeliveryCalled = false;
                 adLoaded = false;
-
                 adController.reset();
-                view.cleanup();
-                removeChild(view);
-
-                view = new Canvas();
-                view.hide();
-                addChild(view);
-                applicationConfig.view = view;
-
                 session++;
+
+                setupStage();
             }
         }
 

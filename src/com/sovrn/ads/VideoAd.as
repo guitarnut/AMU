@@ -1,10 +1,14 @@
 package com.sovrn.ads {
+
     import com.sovrn.constants.AdTypes;
+    import com.sovrn.constants.Errors;
     import com.sovrn.events.AdInstanceEvent;
     import com.sovrn.model.AdVO;
     import com.sovrn.model.InitConfigVO;
     import com.sovrn.model.MediaFileVO;
+    import com.sovrn.net.Log;
     import com.sovrn.utils.Console;
+    import com.sovrn.utils.Timeouts;
     import com.sovrn.video.VideoController;
     import com.sovrn.view.Canvas;
 
@@ -37,12 +41,26 @@ package com.sovrn.ads {
             initAd();
         }
 
+        private function adTimeout(error:Number):void {
+            switch (error) {
+                case Errors.LOAD_ADMANAGER_TIMEOUT:
+                    Log.msg(Log.MEDIA_FILE_LOAD_TIMEOUT);
+                    break;
+                case Errors.VPAID_TIMEOUT:
+                    Log.msg(Log.AD_VPAID_TIMEOUT);
+                    break;
+            }
+
+            dispatchEvent(new AdInstanceEvent(AdInstanceEvent.AdTimeout));
+        }
+
         private function addVPAIDEvents(adInstance:*):void {
             try {
-                adInstance.addEventListener(VPAIDEvent.AdLoaded, handleVPAIDEvent);
-                adInstance.addEventListener(VPAIDEvent.AdError, handleVPAIDEvent);
-                adInstance.addEventListener(VPAIDEvent.AdStopped, handleVPAIDEvent);
-                adInstance.addEventListener(VPAIDEvent.AdImpression, handleVPAIDEvent);
+                adInstance.addEventListener(VPAIDEvent.AdLoaded, handleAdEvent);
+                adInstance.addEventListener(VPAIDEvent.AdError, handleAdEvent);
+                adInstance.addEventListener(VPAIDEvent.AdStopped, handleAdEvent);
+                adInstance.addEventListener(VPAIDEvent.AdImpression, handleAdEvent);
+                adInstance.addEventListener(AdInstanceEvent.AdTimeout, handleAdEvent);
             } catch (e:Error) {
                 Console.log(e.toString());
             }
@@ -50,10 +68,11 @@ package com.sovrn.ads {
 
         private function removeVPAIDEvents(adInstance:*):void {
             try {
-                adInstance.removeEventListener(VPAIDEvent.AdLoaded, handleVPAIDEvent);
-                adInstance.removeEventListener(VPAIDEvent.AdError, handleVPAIDEvent);
-                adInstance.removeEventListener(VPAIDEvent.AdStopped, handleVPAIDEvent);
-                adInstance.removeEventListener(VPAIDEvent.AdImpression, handleVPAIDEvent);
+                adInstance.removeEventListener(VPAIDEvent.AdLoaded, handleAdEvent);
+                adInstance.removeEventListener(VPAIDEvent.AdError, handleAdEvent);
+                adInstance.removeEventListener(VPAIDEvent.AdStopped, handleAdEvent);
+                adInstance.removeEventListener(VPAIDEvent.AdImpression, handleAdEvent);
+                adInstance.removeEventListener(AdInstanceEvent.AdTimeout, handleAdEvent);
             } catch (e:Error) {
                 Console.log(e.toString());
             }
@@ -64,6 +83,8 @@ package com.sovrn.ads {
          ------------------------ */
 
         private function initAd():void {
+            Timeouts.start(Timeouts.AD_SESSION, adTimeout, this, [Errors.VPAID_TIMEOUT]);
+
             try {
                 _ad.initAd(
                         _config.width,
@@ -74,17 +95,18 @@ package com.sovrn.ads {
                         _config.environmentVars
                 );
             } catch (e:Error) {
-                handleVPAIDEvent(new VPAIDEvent(VPAIDEvent.AdError));
+                handleAdEvent(new VPAIDEvent(VPAIDEvent.AdError));
             }
         }
 
-        private function handleVPAIDEvent(e:Event):void {
+        private function handleAdEvent(e:Event):void {
             e.stopImmediatePropagation();
 
             Console.log('VPAID Ad Fired Event: ' + e.type);
 
             switch (e.type) {
                 case VPAIDEvent.AdLoaded:
+                    Timeouts.stop(Timeouts.AD_SESSION);
                     dispatchEvent(new AdInstanceEvent(AdInstanceEvent.AdLoaded));
                     break;
                 case VPAIDEvent.AdError:

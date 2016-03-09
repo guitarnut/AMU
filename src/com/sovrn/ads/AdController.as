@@ -295,6 +295,7 @@ package com.sovrn.ads {
             _impressionFired = true;
             Log.msg(Log.AD_IMPRESSION);
             logSourceResult(AdSourceResult.IMPRESSION, e.data.ad_data);
+            dispatchEvent(new VPAIDEvent(VPAIDEvent.AdImpression));
         }
 
         private function adStopped(e:AdCueEvent):void {
@@ -319,6 +320,7 @@ package com.sovrn.ads {
          ------------------------ */
 
         public function reset():void {
+            stop();
             removeListeners(adCue);
 
             _impressionFired = false;

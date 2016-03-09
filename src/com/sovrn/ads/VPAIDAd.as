@@ -2,12 +2,15 @@ package com.sovrn.ads {
 
     import com.sovrn.constants.AdTypes;
     import com.sovrn.constants.Config;
+    import com.sovrn.constants.Errors;
     import com.sovrn.events.AdInstanceEvent;
     import com.sovrn.model.AdVO;
     import com.sovrn.model.InitConfigVO;
     import com.sovrn.model.MediaFileVO;
     import com.sovrn.net.FileRequest;
+    import com.sovrn.net.Log;
     import com.sovrn.utils.Console;
+    import com.sovrn.utils.Timeouts;
     import com.sovrn.view.Canvas;
 
     import flash.display.Sprite;
@@ -37,6 +40,8 @@ package com.sovrn.ads {
          ------------------------ */
 
         public function load():void {
+            Timeouts.start(Timeouts.LOAD_AD, adTimeout, this, [Errors.LOAD_ADMANAGER_TIMEOUT]);
+
             _mediaFileVOs.map(function (val:MediaFileVO, index:Number, array:Array):void {
                 if ((val.apiFramework.toLowerCase() == Config.VPAID_API) && (Config.COMPATIBLE_VPAID_MIMES.indexOf(val.type)) != -1) {
                     if (!_mediaFile) {
@@ -56,8 +61,24 @@ package com.sovrn.ads {
             }
         }
 
+        private function adTimeout(error:Number):void {
+            switch (error) {
+                case Errors.LOAD_ADMANAGER_TIMEOUT:
+                    Log.msg(Log.MEDIA_FILE_LOAD_TIMEOUT);
+                    break;
+                case Errors.VPAID_TIMEOUT:
+                    Log.msg(Log.AD_VPAID_TIMEOUT);
+                    break;
+            }
+
+            dispatchEvent(new AdInstanceEvent(AdInstanceEvent.AdTimeout));
+        }
+
         private function adLoaded(e:Event):void {
             e.stopImmediatePropagation();
+
+            Timeouts.stop(Timeouts.LOAD_AD);
+            Timeouts.start(Timeouts.AD_SESSION, adTimeout, this, [Errors.VPAID_TIMEOUT]);
 
             adObject = adLoader.data;
             adObject.x = 0;
@@ -86,7 +107,6 @@ package com.sovrn.ads {
             } catch (e:Error) {
                 Console.log(e.toString());
             }
-
         }
 
         private function removeVPAIDEvents(adInstance:*):void {
@@ -127,6 +147,7 @@ package com.sovrn.ads {
 
             switch (e.type) {
                 case VPAIDEvent.AdLoaded:
+                    Timeouts.stop(Timeouts.AD_SESSION);
                     dispatchEvent(new AdInstanceEvent(AdInstanceEvent.AdLoaded));
                     break;
                 case VPAIDEvent.AdError:

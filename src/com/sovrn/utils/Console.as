@@ -9,13 +9,13 @@ package com.sovrn.utils {
         }
 
         public static function log(msg:String):void {
-            if(checkEnabled()) {
-                ExternalInterface.call("console.log", msg);
+            if (checkEnabled()) {
+                ExternalInterface.call("console.log", "[sam (" + Stats.elapsedTime("ad manager") + ")]: " + msg);
             }
         }
 
         public static function obj(msg:*):void {
-            if(checkEnabled()) {
+            if (checkEnabled()) {
                 ExternalInterface.call("console.log", msg);
             }
         }

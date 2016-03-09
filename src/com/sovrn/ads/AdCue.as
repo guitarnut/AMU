@@ -4,6 +4,7 @@ package com.sovrn.ads {
     import com.sovrn.events.AdInstanceEvent;
     import com.sovrn.model.InitConfigVO;
     import com.sovrn.utils.Console;
+    import com.sovrn.utils.Timeouts;
     import com.sovrn.view.Canvas;
 
     import flash.display.DisplayObjectContainer;
@@ -112,6 +113,7 @@ package com.sovrn.ads {
          ------------------------ */
 
         public function next():void {
+            Timeouts.stop(Timeouts.AD_SESSION);
             removeListeners(currentAd);
             currentAd.destroy();
             ads.splice(0, 1);

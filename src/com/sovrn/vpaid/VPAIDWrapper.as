@@ -3,13 +3,16 @@ package com.sovrn.vpaid {
     import com.sovrn.ads.AdController;
     import com.sovrn.constants.AdVPAIDEvents;
     import com.sovrn.constants.Config;
+    import com.sovrn.constants.Errors;
     import com.sovrn.events.AdManagerEvent;
     import com.sovrn.net.Log;
     import com.sovrn.utils.Console;
+    import com.sovrn.utils.Timeouts;
 
     import flash.display.Sprite;
     import flash.events.Event;
     import flash.events.EventDispatcher;
+    import flash.utils.setTimeout;
 
     import vpaid.IVPAID;
     import vpaid.VPAIDEvent;
@@ -27,6 +30,7 @@ package com.sovrn.vpaid {
 
         private var _adController:AdController;
         private var adEvents:EventDispatcher;
+        private var initTimeout:*;
 
         public function VPAIDWrapper() {
         }
@@ -44,7 +48,7 @@ package com.sovrn.vpaid {
 
         private function addControllerListeners():void {
             _adController.addEventListener(VPAIDEvent.AdLoaded, handleAdControllerEvent);
-            //_adController.addEventListener(VPAIDEvent.AdImpression, handleAdControllerEvent);
+            _adController.addEventListener(VPAIDEvent.AdImpression, handleAdControllerEvent);
             _adController.addEventListener(VPAIDEvent.AdError, handleAdControllerEvent);
             _adController.addEventListener(VPAIDEvent.AdStopped, handleAdControllerEvent);
         }
@@ -76,12 +80,26 @@ package com.sovrn.vpaid {
                 case VPAIDEvent.AdStopped:
                     dispatchEvent(new VPAIDEvent(VPAIDEvent.AdStopped));
                     break;
+                case VPAIDEvent.AdImpression:
+                    Timeouts.stop(Timeouts.AD_MANAGER_SESSION);
+                    break;
             }
         }
 
         // this ends the session
-        public function fireAdError():void {
-            dispatchEvent(new VPAIDEvent(VPAIDEvent.AdError));
+        public function fireAdError(error:Number = 0):void {
+            switch(error) {
+                case Errors.ADDELIVERY_TIMEOUT:
+                    Log.msg(Log.AD_DELIVERY_TIMEOUT);
+                    break;
+            }
+
+            Timeouts.start(Timeouts.DESTROY, dispatchFinalEvent, this, [VPAIDEvent.AdError]);
+        }
+
+        // this should be the only place in the code AdStopped and AdError can propogate from
+        private function dispatchFinalEvent(e:Event):void {
+            dispatchEvent(new VPAIDEvent(e.type));
         }
 
         /* ----------------------------------------- */
@@ -101,6 +119,8 @@ package com.sovrn.vpaid {
                 creativeData: creativeData,
                 environmentVars: environmentVars
             }));
+
+            Timeouts.start(Timeouts.AD_MANAGER_SESSION, fireAdError, this, []);
         }
 
         /* ------ getters / setters ----------------------------------------- */
@@ -148,7 +168,8 @@ package com.sovrn.vpaid {
         public function stopAd():void {
             _adController.callAdMethod('stopAd');
             _adController.stop();
-            dispatchEvent(new VPAIDEvent(VPAIDEvent.AdStopped));
+
+            Timeouts.start(Timeouts.DESTROY, dispatchFinalEvent, this, [VPAIDEvent.AdStopped]);
         }
 
         public function pauseAd():void {
