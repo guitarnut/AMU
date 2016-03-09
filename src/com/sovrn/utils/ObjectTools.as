@@ -8,7 +8,7 @@ package com.sovrn.utils {
 
             for(var val:String in obj) {
                 if (exclude.indexOf(val) == -1) {
-                    query.push(val + "=" + obj[val]);
+                    query.push(val + "=" + encodeURIComponent(obj[val]));
                 }
             }
 

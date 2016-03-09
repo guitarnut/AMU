@@ -6,6 +6,8 @@ package com.sovrn.net {
     import com.sovrn.utils.Console;
     import com.sovrn.utils.ObjectTools;
 
+    import flash.net.URLLoader;
+
     import flash.net.URLRequest;
 
     public class Log {
@@ -114,8 +116,8 @@ package com.sovrn.net {
         }
 
         private static function send(params:Object):void {
-            Console.log("//" + Config.SERVER + "/" + Config.ENDPOINT_LOG + "?" + encodeURIComponent(signature()) + "&" + encodeURIComponent(ObjectTools.paramString(params)));
-            new URLRequest("http://" + Config.SERVER + "/" + Config.ENDPOINT_LOG + "?" + encodeURIComponent(signature()) + encodeURIComponent(ObjectTools.paramString(params)));
+            Console.log("//" + Config.SERVER + "/" + Config.ENDPOINT_LOG + "?" + signature() + "&" + ObjectTools.paramString(params));
+            new URLLoader().load(new URLRequest("//" + Config.SERVER + "/" + Config.ENDPOINT_LOG + "?" + signature() + "&" + ObjectTools.paramString(params)));
         }
 
     }

@@ -14,6 +14,7 @@ package com.sovrn.ads {
     import flash.display.Sprite;
     import flash.events.Event;
     import flash.events.EventDispatcher;
+    import flash.net.URLLoader;
     import flash.net.URLRequest;
 
     import vpaid.VPAIDEvent;
@@ -198,7 +199,7 @@ package com.sovrn.ads {
             for (var i:Number = 0, len:Number = pixels.length; i < len; i++) {
                 if (i < Config.TRACKING_PIXEL_LIMIT) {
                     Console.log(pixels[0]);
-                    new URLRequest(pixels[0]);
+                    new URLLoader().load(new URLRequest(pixels[0]));
                 } else {
                     Console.log('pixel limit reached for event ' + event);
                     break;
