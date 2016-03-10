@@ -39,6 +39,9 @@ package com.sovrn.video {
         private var clickArea:ClickArea;
         private var time:Timer;
         private var videoSizeData:Object;
+        private var firstQuarter:Boolean = false;
+        private var midPoint:Boolean = false;
+        private var thirdQuarter:Boolean = false;
         private var _view:Canvas;
         private var _clickThrough:String;
         private var _clickTracking:Array;
@@ -135,6 +138,7 @@ package com.sovrn.video {
                             Timeouts.stop(Timeouts.LOAD_VIDEO);
                             dispatchEvent(new VPAIDEvent(VPAIDEvent.AdStarted));
                             dispatchEvent(new VPAIDEvent(VPAIDEvent.AdImpression));
+                            dispatchEvent(new VPAIDEvent(VPAIDEvent.AdVideoStart));
                         }
                     }, 500);
                     break;
@@ -165,10 +169,31 @@ package com.sovrn.video {
 
         private function tick(e:TimerEvent):void {
             dispatchEvent(new VPAIDEvent(VPAIDEvent.AdRemainingTimeChange));
+            checkVideoProgress();
         }
 
         private function pauseTimer():void {
             time.stop();
+        }
+
+        private function checkVideoProgress():void {
+            var val:Number = Math.round((time.currentCount / _duration) * 100);
+            Console.log(String(val));
+
+            switch (true) {
+                case (val > 75):
+                    if (!thirdQuarter)dispatchEvent(new VPAIDEvent(VPAIDEvent.AdVideoThirdQuartile));
+                    thirdQuarter = true;
+                    break;
+                case (val > 50):
+                    if (!midPoint)dispatchEvent(new VPAIDEvent(VPAIDEvent.AdVideoMidpoint));
+                    midPoint = true;
+                    break;
+                case (val > 25):
+                    if (!firstQuarter)dispatchEvent(new VPAIDEvent(VPAIDEvent.AdVideoFirstQuartile));
+                    firstQuarter = true;
+                    break;
+            }
         }
 
         public function play():void {

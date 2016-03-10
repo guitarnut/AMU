@@ -16,6 +16,8 @@ package com.sovrn.ads {
     import flash.display.Sprite;
     import flash.events.Event;
     import flash.events.EventDispatcher;
+    import flash.events.IOErrorEvent;
+    import flash.events.SecurityErrorEvent;
     import flash.net.URLLoader;
     import flash.net.URLRequest;
 
@@ -23,15 +25,15 @@ package com.sovrn.ads {
 
     public class AdController extends Sprite {
 
-        private var _impressionFired:Boolean = false;
         private var adCue:AdCue;
-        private var _initConfig:InitConfigVO;
         private var adInstance:*;
         private var dispatcher:EventDispatcher;
         private var storedSetCalls:Array;
         private var trackingEvents:Object;
         private var impressions:Array;
         private var beacon:Beacon;
+        private var _initConfig:InitConfigVO;
+        private var _impressionFired:Boolean = false;
         private var _config:ApplicationVO;
         private var _view:Canvas;
 
@@ -214,13 +216,12 @@ package com.sovrn.ads {
 
         private function firePixels(pixels:Array, event:String, useLimit:Boolean = true):void {
             for (var i:Number = 0, len:Number = pixels.length; i < len; i++) {
-                if(useLimit) {
+                if (useLimit) {
                     if (i < Config.TRACKING_PIXEL_LIMIT) {
                         try {
-                            Console.log(pixels[0]);
-                            new URLLoader().load(new URLRequest(pixels[0]));
+                            send(pixels[i]);
                         } catch (e:Error) {
-                            //
+                            Console.log('could not fire ' + pixels[i]);
                         }
                     } else {
                         Console.log('pixel limit reached for event ' + event);
@@ -228,14 +229,39 @@ package com.sovrn.ads {
                     }
                 } else {
                     try {
-                        Console.log(pixels[0]);
-                        new URLLoader().load(new URLRequest(pixels[0]));
+                        Console.log(pixels[i]);
+                        send(pixels[i]);
                     } catch (e:Error) {
-                        //
+                        Console.log('could not fire ' + pixels[i]);
                     }
                 }
 
             }
+        }
+
+        private function send(pixel:String):void {
+            Console.log(pixel);
+
+            var myRequest:URLRequest = new URLRequest(pixel);
+
+            try {
+                var myLoader:URLLoader = new URLLoader();
+
+                myLoader.addEventListener(Event.COMPLETE, eventRequestCompleted);
+                myLoader.addEventListener(SecurityErrorEvent.SECURITY_ERROR, loaderEvents);
+                myLoader.addEventListener(IOErrorEvent.IO_ERROR, loaderEvents);
+                myLoader.load(myRequest);
+            } catch (e:Error) {
+                Console.log(e.getStackTrace());
+            }
+        }
+
+        private function eventRequestCompleted(e:Event):void {
+            Console.log("pixel sent");
+        }
+
+        private function loaderEvents(e:Event):void {
+            Console.log("pixel failed: " + e.type);
         }
 
         /* ------------------------
@@ -309,6 +335,7 @@ package com.sovrn.ads {
             switch (e.type) {
                 case AdCueEvent.AD_CUE_ERROR:
                     result = AdSourceResult.ERROR;
+                    trackEvent(VPAIDEvent.AdError);
                     break;
                 case AdCueEvent.AD_CUE_TIMEOUT:
                     result = AdSourceResult.TIMEOUT;
@@ -330,11 +357,13 @@ package com.sovrn.ads {
             Log.msg(Log.AD_IMPRESSION);
             logSourceResult(AdSourceResult.IMPRESSION, e.data.ad_data);
             dispatchEvent(new VPAIDEvent(VPAIDEvent.AdImpression));
+            trackEvent(VPAIDEvent.AdImpression);
         }
 
         private function adStopped(e:AdCueEvent):void {
             stop();
             dispatchEvent(new VPAIDEvent(VPAIDEvent.AdStopped));
+            trackEvent(VPAIDEvent.AdStopped);
         }
 
         private function waterfall():void {

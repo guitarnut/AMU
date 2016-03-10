@@ -61,6 +61,10 @@ package com.sovrn.video {
         }
 
         private function handleEvents(e:Event):void {
+            e.stopImmediatePropagation();
+
+            Console.log('VIDEO'+ e.type);
+
             switch (e.type) {
                 case VPAIDEvent.AdRemainingTimeChange:
                     updateTime(video.duration - video.currentTime);
