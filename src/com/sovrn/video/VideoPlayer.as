@@ -2,13 +2,17 @@ package com.sovrn.video {
 
     import com.sovrn.constants.Config;
     import com.sovrn.constants.Errors;
+    import com.sovrn.events.AdInstanceEvent;
     import com.sovrn.model.MediaFileVO;
     import com.sovrn.net.Log;
     import com.sovrn.utils.Console;
     import com.sovrn.utils.Timeouts;
     import com.sovrn.video.view.ClickArea;
+    import com.sovrn.view.Canvas;
 
     import flash.display.Sprite;
+    import flash.events.Event;
+    import flash.events.MouseEvent;
     import flash.events.NetStatusEvent;
     import flash.events.TimerEvent;
     import flash.media.SoundTransform;
@@ -26,6 +30,7 @@ package com.sovrn.video {
         private var video:Video;
         private var nc:NetConnection;
         private var ns:NetStream;
+        private var nsPosition:Number;
         private var videoVolume:SoundTransform;
         private var initWidth:Number;
         private var initHeight:Number;
@@ -36,6 +41,8 @@ package com.sovrn.video {
         private var mediaFileVO:MediaFileVO;
         private var clickArea:ClickArea;
         private var time:Timer;
+        private var videoSizeData:Object;
+        private var _view:Canvas;
         private var _clickThrough:String;
         private var _clickTracking:Array;
         private var _bitrate:Number;
@@ -126,15 +133,17 @@ package com.sovrn.video {
             switch (e.info.code) {
                 case 'NetStream.Play.Start':
                     startTimer();
-                    Timeouts.stop(Timeouts.LOAD_VIDEO);
                     setTimeout(function ():void {
                         if (!errorFired) {
+                            Timeouts.stop(Timeouts.LOAD_VIDEO);
                             dispatchEvent(new VPAIDEvent(VPAIDEvent.AdStarted));
                             dispatchEvent(new VPAIDEvent(VPAIDEvent.AdImpression));
                         }
                     }, 500);
                     break;
                 case 'NetStream.Play.Stop':
+                    time.stop();
+                    time = null;
                     dispatchEvent(new VPAIDEvent(VPAIDEvent.AdVideoComplete));
                     dispatchEvent(new VPAIDEvent(VPAIDEvent.AdStopped));
                     break;
@@ -174,6 +183,7 @@ package com.sovrn.video {
         public function pause():void {
             dispatchEvent(new VPAIDEvent(VPAIDEvent.AdPaused));
             ns.pause();
+            nsPosition = ns.time;
             pauseTimer();
         }
 
@@ -196,15 +206,33 @@ package com.sovrn.video {
         public function resize(w:Number, h:Number, viewMode:String = ""):void {
             var origWidth:Number = w;
             var origHeight:Number = h;
+            var xOffset:Number = 0;
+            var yOffset:Number = 0;
 
-            if (Math.floor(h * aspectRatio) < w) {
-                w = Math.floor(h * aspectRatio);
-            } else if (Math.floor(w / aspectRatio) < h) {
-                h = Math.floor(w / aspectRatio);
+            if (!videoSizeData) videoSizeData = {};
+
+            // save these values and reuse when needed
+            if (!videoSizeData[origWidth + 'x' + origHeight]) {
+                videoSizeData[origWidth + 'x' + origHeight] = {};
+
+                if (Math.floor(h * aspectRatio) < w) {
+                    w = Math.floor(h * aspectRatio);
+                } else if (Math.floor(w / aspectRatio) < h) {
+                    h = Math.floor(w / aspectRatio);
+                }
+
+                xOffset = Math.floor((_view.width - w) / 2);
+                yOffset = Math.floor((_view.height - h) / 2);
+
+            } else {
+                // we've already been this size, reuse data
+                w = videoSizeData[origWidth + 'x' + origHeight].width;
+                h = videoSizeData[origWidth + 'x' + origHeight].height;
+                xOffset = videoSizeData[origWidth + 'x' + origHeight].xOffset;
+                yOffset = videoSizeData[origWidth + 'x' + origHeight].yOffset;
             }
 
-            var xOffset:Number = Math.floor((origWidth - w) / 2);
-            var yOffset:Number = Math.floor((origHeight - h) / 2);
+            Console.obj(videoSizeData[origWidth + 'x' + origHeight]);
 
             video.width = w;
             video.height = h;
@@ -219,6 +247,17 @@ package com.sovrn.video {
                 clickArea.x = xOffset;
                 clickArea.y = yOffset;
             }
+
+            // save these values and reuse when needed
+            videoSizeData[origWidth + 'x' + origHeight] = {
+                xOffset: xOffset,
+                yOffset: yOffset
+            };
+
+            videoSizeData[origWidth + 'x' + origHeight].width = w;
+            videoSizeData[origWidth + 'x' + origHeight].height = h;
+            videoSizeData[origWidth + 'x' + origHeight].xOffset = xOffset;
+            videoSizeData[origWidth + 'x' + origHeight].yOffset = yOffset;
         }
 
         public function set volume(v:Number):void {
@@ -248,6 +287,10 @@ package com.sovrn.video {
 
         public function set clickTracking(val:Array):void {
             _clickTracking = val;
+        }
+
+        public function set view(val:Canvas):void {
+            _view = val;
         }
 
     }

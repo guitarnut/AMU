@@ -30,8 +30,6 @@ package com.sovrn.video.view {
         }
 
         private function handleClick(e:MouseEvent):void {
-            e.stopImmediatePropagation();
-
             dispatchEvent(new VPAIDEvent(VPAIDEvent.AdClickThru));
 
             removeEventListener(MouseEvent.CLICK, handleClick);

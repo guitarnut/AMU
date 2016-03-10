@@ -62,6 +62,12 @@ package com.sovrn.vpaid {
         private function dispatchAdEvent(e:Event):void {
             e.stopImmediatePropagation();
             dispatchEvent(new VPAIDEvent(e.type));
+
+            showEvent(e.type);
+        }
+
+        private function showEvent(e:String):void {
+            if (VPAIDEvent.DONT_LOG.indexOf(e) == -1)Console.log('VPAIDEvent: ' + e);
         }
 
         private function handleAdControllerEvent(e:Event):void {
@@ -77,6 +83,7 @@ package com.sovrn.vpaid {
                     Log.msg(Log.AD_LOADED);
                     Timeouts.stop(Timeouts.AD_MANAGER_SESSION);
                     dispatchEvent(new VPAIDEvent(VPAIDEvent.AdLoaded));
+                    showEvent(VPAIDEvent.AdLoaded);
                     break;
                 case VPAIDEvent.AdStopped:
                     Timeouts.start(Timeouts.DESTROY, dispatchFinalEvent, this, [VPAIDEvent.AdStopped]);
@@ -84,6 +91,7 @@ package com.sovrn.vpaid {
                 case VPAIDEvent.AdImpression:
                     Timeouts.stop(Timeouts.AD_MANAGER_SESSION);
                     dispatchEvent(new VPAIDEvent(VPAIDEvent.AdImpression));
+                    showEvent(VPAIDEvent.AdImpression);
                     break;
             }
         }
@@ -100,8 +108,9 @@ package com.sovrn.vpaid {
         }
 
         // this should be the only place in the code AdStopped and AdError can propogate from
-        private function dispatchFinalEvent(e:Event):void {
-            dispatchEvent(new VPAIDEvent(e.type));
+        private function dispatchFinalEvent(e:String):void {
+            showEvent(e);
+            dispatchEvent(new VPAIDEvent(e));
         }
 
         /* ----------------------------------------- */

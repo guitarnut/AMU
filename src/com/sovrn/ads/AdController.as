@@ -148,6 +148,7 @@ package com.sovrn.ads {
         }
 
         private function dispatchAdEvent(e:Event):void {
+            e.stopImmediatePropagation();
             dispatcher.dispatchEvent(new VPAIDEvent(e.type));
             handleAdEvent(e);
         }

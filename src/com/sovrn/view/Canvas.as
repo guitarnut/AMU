@@ -6,6 +6,9 @@ package com.sovrn.view {
 
     public class Canvas extends Sprite {
 
+        private var _width:Number;
+        private var _height:Number;
+
         public function Canvas():void {
             hide();
         }
@@ -14,6 +17,8 @@ package com.sovrn.view {
             this.graphics.beginFill(color, 1);
             this.graphics.drawRect(0, 0, w, h);
             this.graphics.endFill();
+            _width = w;
+            _height = h;
         }
 
         public function show():void {
@@ -26,9 +31,17 @@ package com.sovrn.view {
 
         public function cleanup():void {
             var len:Number = numChildren;
-            for(var i:Number = 0; i < len; i++) {
+            for (var i:Number = 0; i < len; i++) {
                 removeChildAt(0);
             }
+        }
+
+        override public function get width():Number {
+            return _width;
+        }
+
+        override public function get height():Number {
+            return _height;
         }
 
     }

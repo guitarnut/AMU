@@ -68,17 +68,18 @@ package com.sovrn.utils {
 
         public static function start(name:String, callback:Function, context:*, args:Array):void {
             if (!timeoutCue.hasOwnProperty(name)) {
-                var t:Timer = new Timer(getValue(name));
+                var t:Timer = new Timer(getValue(name), 1);
 
                 t.addEventListener(TimerEvent.TIMER_COMPLETE, function (e:TimerEvent):void {
                     Console.log('timeout ' + name + ' fired');
                     callback.apply(context, args);
+                    e.target.stop();
                 });
 
                 timeoutCue[name] = t;
                 t.start();
 
-                Console.log("set " + name + " timeout");
+                Console.log("set " + name + " timeout: " + getValue(name));
             }
         }
 
@@ -86,6 +87,7 @@ package com.sovrn.utils {
             if (timeoutCue.hasOwnProperty(name)) {
                 timeoutCue[name].stop();
                 Console.log("cleared " + name + " timeout");
+                delete timeoutCue[name];
             }
         }
 

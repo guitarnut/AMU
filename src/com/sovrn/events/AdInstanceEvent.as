@@ -11,6 +11,7 @@ package com.sovrn.events {
         public static const AdTimeout:String = "AdTimeout";
         public static const AdImpression:String = "AdImpression";
         public static const AdStopped:String = "AdStopped";
+        public static const AdPaused:String = "AdPaused";
 
         private var _data:Object;
 
