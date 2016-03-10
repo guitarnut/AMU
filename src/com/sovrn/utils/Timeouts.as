@@ -2,8 +2,6 @@ package com.sovrn.utils {
 
     import flash.events.TimerEvent;
     import flash.utils.Timer;
-    import flash.utils.clearInterval;
-    import flash.utils.setInterval;
 
     public class Timeouts {
 

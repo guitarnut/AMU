@@ -1,6 +1,8 @@
 package com.sovrn.constants {
 
     public class Config {
+        public static const APP_NAME:String = "flash_v3";
+
         public static const VPAID_VERSION:String = "2.0";
 
         public static const SERVER:String = "ap.lijit.com";

@@ -9,7 +9,6 @@ package {
     import com.sovrn.constants.Errors;
     import com.sovrn.events.AdManagerEvent;
     import com.sovrn.model.ApplicationVO;
-    import com.sovrn.net.Beacon;
     import com.sovrn.net.Log;
     import com.sovrn.utils.Console;
     import com.sovrn.utils.ExternalMethods;
@@ -20,7 +19,6 @@ package {
     import com.sovrn.view.Canvas;
     import com.sovrn.vpaid.VPAIDWrapper;
 
-    import flash.display.Sprite;
     import flash.display.StageAlign;
     import flash.display.StageScaleMode;
     import flash.events.ErrorEvent;
@@ -31,7 +29,7 @@ package {
 
     import vpaid.VPAIDEvent;
 
-    public class Sovrn extends Sprite {
+    public class Sovrn extends VPAIDWrapper {
 
         [Embed(source="../js/sovrn.js", mimeType="application/octet-stream")]
         private var js:Class;
@@ -46,7 +44,6 @@ package {
         private var adLoaded:Boolean = false;
         private var session:int;
         private var view:Canvas;
-        private var beacon:Beacon;
 
         public function Sovrn() {
             Security.allowDomain("*");
@@ -60,13 +57,12 @@ package {
                 // no loader info object available?
             }
 
-            vpaid = new VPAIDWrapper();
-            com.sovrn.vpaid.VPAIDWrapper(vpaid).addEventListener(AdManagerEvent.INIT_AD_CALLED, serveAds);
-            com.sovrn.vpaid.VPAIDWrapper(vpaid).addEventListener(VPAIDEvent.AdError, end);
-            com.sovrn.vpaid.VPAIDWrapper(vpaid).addEventListener(VPAIDEvent.AdStopped, end);
+            addEventListener(AdManagerEvent.INIT_AD_CALLED, serveAds);
+            addEventListener(VPAIDEvent.AdError, end);
+            addEventListener(VPAIDEvent.AdStopped, end);
 
             adController = new AdController();
-            com.sovrn.vpaid.VPAIDWrapper(vpaid).controller = adController;
+            controller = adController;
 
             setupStage();
 
@@ -101,13 +97,57 @@ package {
             Console.log('UncaughtError: ' + message);
         }
 
-        public function getVPAID():* {
-            Console.log('getVPAID() called');
-            return vpaid;
+        private function config():void {
+            if (this.loaderInfo.parameters) {
+                var params:Object = this.loaderInfo.parameters;
+
+                Console.obj(params);
+
+                Timeouts.setValues(params);
+
+                applicationConfig = new ApplicationVO();
+                applicationConfig.parameters = params || {};
+                applicationConfig.publisherId = params.u || params.sovrnid || "";
+                applicationConfig.publisherLoc = params.loc || "";
+                applicationConfig.vtid = params.vtid || "";
+                applicationConfig.zoneId = params.zoneid || 0;
+                applicationConfig.server = params.ljt || Config.SERVER;
+                applicationConfig.stageWidth = params.vidwidth || this.width || 0;
+                applicationConfig.stageHeight = params.vidheight || this.height || 0;
+                applicationConfig.trueLoc = ExternalMethods.userLoc() || "";
+                applicationConfig.trueDomain = StringTools.domain(applicationConfig.trueLoc);
+                applicationConfig.view = view;
+
+                Log.init(applicationConfig);
+                //Console.obj(applicationConfig);
+
+                if (validateConfig()) {
+                    Log.msg(Log.AD_MANAGER_INITIALIZED, "session_" + session);
+
+                    Log.custom({
+                        orig_loc: applicationConfig.publisherLoc,
+                        loc: applicationConfig.trueLoc,
+                        domain: applicationConfig.trueDomain,
+                        width: params.width || "undefined",
+                        height: params.height || "undefined"
+                    });
+
+                    getAds();
+                } else {
+                    Console.log("invalid config");
+                    fireAdError();
+                }
+            } else {
+                setTimeout(function ():void {
+                    config();
+                }, 200)
+            }
         }
 
-        private function fireAdError(error:Number = 0):void {
-            com.sovrn.vpaid.VPAIDWrapper(vpaid).fireAdError(error);
+        private function validateConfig():Boolean {
+            return Boolean(applicationConfig.zoneId != 0) &&
+                    Boolean(applicationConfig.vtid != null) &&
+                    Boolean(applicationConfig.publisherId != null);
         }
 
         private function setupStage():void {
@@ -130,60 +170,12 @@ package {
         private function addedToStage(e:Event):void {
             removeEventListener(Event.ADDED_TO_STAGE, addedToStage);
 
+            Console.log('added to display area');
+
             this.stage.align = StageAlign.TOP_LEFT;
             this.stage.scaleMode = StageScaleMode.NO_SCALE;
 
             if (applicationConfig) view.resize(applicationConfig.stageWidth, applicationConfig.stageHeight);
-        }
-
-        private function config():void {
-            if (this.loaderInfo.parameters) {
-                var params:Object = this.loaderInfo.parameters;
-
-                Timeouts.setValues(params);
-
-                applicationConfig = new ApplicationVO();
-                applicationConfig.parameters = params || {};
-                applicationConfig.publisherId = params.u || params.sovrnid || "";
-                applicationConfig.publisherLoc = params.loc || "";
-                applicationConfig.vtid = params.vtid || "";
-                applicationConfig.zoneId = params.zoneid || 0;
-                applicationConfig.server = params.ljt || Config.SERVER;
-                applicationConfig.stageWidth = params.vidwidth || this.width || 0;
-                applicationConfig.stageHeight = params.vidheight || this.height || 0;
-                applicationConfig.trueLoc = ExternalMethods.userLoc() || "";
-                applicationConfig.trueDomain = StringTools.domain(applicationConfig.trueLoc);
-                applicationConfig.view = view;
-
-                Log.init(applicationConfig);
-
-                if (validateConfig()) {
-                    Log.msg(Log.AD_MANAGER_INITIALIZED, "session_" + session);
-
-                    Log.custom({
-                        orig_loc: applicationConfig.publisherLoc,
-                        loc: applicationConfig.trueLoc,
-                        domain: applicationConfig.trueDomain,
-                        width: params.width || "undefined",
-                        height: params.height || "undefined"
-                    });
-
-                    getAds();
-                } else {
-                    Console.log("invalid config");
-                    com.sovrn.vpaid.VPAIDWrapper(vpaid).fireAdError();
-                }
-            } else {
-                setTimeout(function ():void {
-                    config();
-                }, 200)
-            }
-        }
-
-        private function validateConfig():Boolean {
-            return Boolean(applicationConfig.zoneId != 0) &&
-                    Boolean(applicationConfig.vtid != null) &&
-                    Boolean(applicationConfig.publisherId != null);
         }
 
         private function getAds():void {
@@ -199,11 +191,16 @@ package {
                     Timeouts.stop(Timeouts.AD_DELIVERY_CALL);
                     Log.msg(Log.AD_DELIVERY_COMPLETE);
 
+                    applicationConfig.tid = e.data.ads[0].tid || "";
+
                     adCall.removeEventListener(AdManagerEvent.AD_DELIVERY_COMPLETE, serveAds);
                     adCall = null;
+
+                    adController.config = applicationConfig;
                     adController.ads = e.data.ads;
+
                     adDeliveryCalled = true;
-                    applicationConfig.tid = e.data.ads[0].tid || "";
+
                     break;
                 case AdManagerEvent.INIT_AD_CALLED:
                     if (!sessionStarted) {
@@ -221,12 +218,6 @@ package {
 
             if (initCalled && adDeliveryCalled) {
                 if (!adLoaded) {
-
-                    if (!beacon) {
-                        beacon = new Beacon(applicationConfig);
-                        beacon.fire();
-                    }
-
                     adLoaded = true;
 
                     Console.log('starting VPAID');

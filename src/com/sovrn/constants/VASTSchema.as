@@ -5,21 +5,26 @@ package com.sovrn.constants {
         public static const TYPE:String = 'VAST';
 
         public static const SCHEMA:Object = {
+            AdSystem: {},
+            AdTitle: {
+                required: false
+            },
             Ad: {
                 required: true,
                 attributes: [
                     {
                         name: 'id',
                         required: false
+                    },
+                    {
+                        name: 'tid',
+                        required: false
                     }]
             },
             InLine: {
                 required: true
             },
-            AdSystem: {},
-            AdTitle: {
-                required: false
-            },
+
             Error: {
                 required: false
             },

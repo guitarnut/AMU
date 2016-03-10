@@ -51,21 +51,22 @@ package com.sovrn.xml {
                 parseXML(children, schema);
 
             } catch (e:Error) {
-                throw new Error('could not parse XML: ' + e.toString());
+                throw new Error([wrapperCount, e.toString()].join("_"));
             }
         }
 
         private function parseXML(children:XMLList, document:Object):void {
             var schema:Object = document.SCHEMA;
+            var adSystem:String = getAdSystem(children);
 
             for (var node:String in schema) {
 
                 if (children.descendants(node).length() > 0) {
                     var nodes:XMLList = children.descendants(node);
-                    storeNodeText(nodes, schema[node].attributes);
+                    storeNodeText(nodes, schema[node].attributes, adSystem);
                 } else {
                     if (schema[node].required) {
-                        throw new Error('required node ' + node + ' missing');
+                        throw new Error('required node ' + node + ' missing on ' + adSystem);
                     }
                 }
             }
@@ -77,19 +78,31 @@ package com.sovrn.xml {
             }
         }
 
-        private function storeNodeText(nodes:XMLList, attributes:Array = null):void {
+        private function getAdSystem(list:XMLList):String {
+            var nText:String = "unknown ad system";
+            var n:XMLList = list.descendants('AdSystem');
+
+            try {
+                nText = n[0].text();
+            } catch (e:Error) {
+                //
+            }
+            return nText;
+        }
+
+        private function storeNodeText(nodes:XMLList, attributes:Array = null, adSystem:String = ""):void {
             for (var i:Number = 0, len:Number = nodes.length(); i < len; i++) {
                 var nodeAttributes:Object = {};
 
                 if (attributes != null) {
-                    nodeAttributes = storeNodeAttribute(nodes[i], attributes);
+                    nodeAttributes = storeNodeAttribute(nodes[i], attributes, adSystem);
                 }
 
                 storeData(nodes[i].name(), nodes[i].text(), nodeAttributes);
             }
         }
 
-        private function storeNodeAttribute(node:XML, attributes:Array):Object {
+        private function storeNodeAttribute(node:XML, attributes:Array, adSystem:String):Object {
             var values:Object = {};
 
             attributes.map(function (val:Object, index:Number, array:Array):void {
@@ -97,7 +110,7 @@ package com.sovrn.xml {
                     values[val.name] = String(node.attribute(val.name));
                 } else {
                     if (val.required) {
-                        throw new Error('node ' + node.name() + ' missing required attribute ' + val);
+                        throw new Error('node ' + node.name() + ' missing required attribute ' + val.name + ' on ' + adSystem);
                     }
                 }
             });

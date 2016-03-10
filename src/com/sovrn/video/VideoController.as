@@ -2,7 +2,6 @@ package com.sovrn.video {
 
     import com.sovrn.constants.AdVPAIDEvents;
     import com.sovrn.constants.Config;
-    import com.sovrn.events.AdInstanceEvent;
     import com.sovrn.model.AdVO;
     import com.sovrn.utils.Console;
     import com.sovrn.video.view.MuteButton;
@@ -30,6 +29,14 @@ package com.sovrn.video {
         private var _mediaFileVOs:Array;
 
         public function VideoController() {
+            text = new TextMessage();
+
+            muteButton = new MuteButton();
+            muteButton.addEventListener(MouseEvent.CLICK, handleMuteClick);
+            muteButton.volume(volume);
+
+            playButton = new PlayButton();
+            playButton.addEventListener(MouseEvent.CLICK, handlePlayClick);
         }
 
         public function set view(val:Canvas):void {
@@ -123,6 +130,11 @@ package com.sovrn.video {
             pauseAd();
         }
 
+        private function adStarted(e:Event):void {
+            muteButton.show();
+            text.hide();
+        }
+
         /* ----------------------------------------- */
         // IVPAID methods
         /* ----------------------------------------- */
@@ -139,27 +151,21 @@ package com.sovrn.video {
             video.view = _view;
             video.volume = volume;
             video.addEventListener(MouseEvent.CLICK, videoClicked);
+            video.addEventListener(VPAIDEvent.AdStarted, adStarted);
 
             addEvents();
 
             video.init();
 
-            _view.addChild(video);
-
-            text = new TextMessage();
             text.update("Advertisement");
             text.show();
 
+            _view.addChild(video);
             _view.addChild(text);
-
-            muteButton = new MuteButton();
-            muteButton.addEventListener(MouseEvent.CLICK, handleMuteClick);
-            muteButton.volume(volume);
-
-            playButton = new PlayButton();
-            playButton.addEventListener(MouseEvent.CLICK, handlePlayClick);
-
+            _view.addChild(muteButton);
             _view.addChild(playButton);
+
+            muteButton.hide();
 
             positionAssets();
         }
@@ -206,8 +212,8 @@ package com.sovrn.video {
 
         public function startAd():void {
             videoStarted = true;
-            _view.removeChild(playButton);
-            _view.addChild(muteButton);
+            playButton.hide();
+            muteButton.show();
             text.hide();
             video.play();
         }
@@ -220,12 +226,12 @@ package com.sovrn.video {
         public function pauseAd():void {
             video.pause();
             centerPlayButton();
-            _view.addChild(playButton);
+            playButton.show();
         }
 
         public function resumeAd():void {
             video.resume();
-            _view.removeChild(playButton);
+            playButton.hide();
         }
 
         /* --------------------------- */

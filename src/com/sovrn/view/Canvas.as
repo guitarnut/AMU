@@ -1,7 +1,5 @@
 package com.sovrn.view {
 
-    import com.sovrn.utils.Console;
-
     import flash.display.Sprite;
 
     public class Canvas extends Sprite {

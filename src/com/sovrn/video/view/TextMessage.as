@@ -27,6 +27,8 @@ package com.sovrn.video.view {
             textbox.selectable = false;
             textbox.textColor = 0xFFFFFF;
             textbox.background = false;
+
+            addChild(textbox);
         }
 
         public function update(msg:String):void {
@@ -34,11 +36,11 @@ package com.sovrn.video.view {
         }
 
         public function show():void {
-            addChild(textbox);
+            visible = true;
         }
 
         public function hide():void {
-            removeChild(textbox);
+            visible = false;
         }
 
     }

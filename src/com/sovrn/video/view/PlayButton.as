@@ -22,6 +22,14 @@ package com.sovrn.video.view {
             addChild(icon);
         }
 
+        public function show():void {
+            visible = true;
+        }
+
+        public function hide():void {
+            visible = false;
+        }
+
     }
 
 }

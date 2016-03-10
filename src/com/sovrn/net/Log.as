@@ -113,7 +113,8 @@ package com.sovrn.net {
                 vtid: config.vtid,
                 zoneid: config.zoneId,
                 u: config.publisherId,
-                runtime: Stats.elapsedTime("ad manager")
+                runtime: Stats.elapsedTime("ad manager"),
+                am_type: Config.APP_NAME
             };
 
             return ObjectTools.paramString(data);

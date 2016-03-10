@@ -12,7 +12,6 @@ package com.sovrn.vpaid {
     import flash.display.Sprite;
     import flash.events.Event;
     import flash.events.EventDispatcher;
-    import flash.utils.setTimeout;
 
     import vpaid.IVPAID;
     import vpaid.VPAIDEvent;
@@ -30,7 +29,6 @@ package com.sovrn.vpaid {
 
         private var _adController:AdController;
         private var adEvents:EventDispatcher;
-        private var initTimeout:*;
 
         public function VPAIDWrapper() {
         }
@@ -113,17 +111,23 @@ package com.sovrn.vpaid {
             dispatchEvent(new VPAIDEvent(e));
         }
 
+        public function getVPAID():* {
+            Console.log('getVPAID() called');
+            return this;
+        }
+
         /* ----------------------------------------- */
         // IVPAID methods
         /* ----------------------------------------- */
 
         public function handshakeVersion(playerVPAIDVersion:String):String {
-            return Config.VPAID_VERSION;
+            Console.log('handshakeVersion');
+            return "1.0";
         }
 
         public function initAd(width:Number, height:Number, viewMode:String, desiredBitrate:Number, creativeData:String = "", environmentVars:String = ""):void {
+            Console.log('initAd');
             Timeouts.start(Timeouts.AD_MANAGER_SESSION, fireAdError, this, []);
-
             dispatchEvent(new AdManagerEvent(AdManagerEvent.INIT_AD_CALLED, {
                 width: width,
                 height: height,
@@ -137,47 +141,57 @@ package com.sovrn.vpaid {
         /* ------ getters / setters ----------------------------------------- */
 
         public function get adLinear():Boolean {
+            Console.log('adLinear');
             return _adController.callAdMethod('adLinear', [], true, 'get');
         }
 
         public function get adExpanded():Boolean {
+            Console.log('adExpanded');
             return _adController.callAdMethod('adExpanded', [], false, 'get');
         }
 
         public function get adRemainingTime():Number {
+            //Console.log('adRemainingTime');
             return _adController.callAdMethod('adRemainingTime', [], -2, 'get');
         }
 
         public function get adVolume():Number {
+            Console.log('adVolume');
             return Number(_adController.callAdMethod('adVolume', [], '0', 'get'));
         }
 
         public function set adVolume(val:Number):void {
+            Console.log('adVolume: ' + val);
             _adController.callAdMethod('adVolume', [val], null, 'set');
         }
 
         /* ------ layout methods ----------------------------------------- */
 
         public function resizeAd(w:Number, h:Number, viewMode:String):void {
+            Console.log('resizeAd');
             _adController.callAdMethod('resizeAd', [w, h, viewMode]);
         }
 
         /* ------  control methods ----------------------------------------- */
 
         public function expandAd():void {
+            Console.log('expandAd');
             _adController.callAdMethod('expandAd');
         }
 
         public function collapseAd():void {
+            Console.log('collapseAd');
             _adController.callAdMethod('collapseAd');
         }
 
         public function startAd():void {
+            Console.log('startAd');
             Timeouts.start(Timeouts.AD_MANAGER_SESSION, fireAdError, this, []);
             _adController.callAdMethod('startAd');
         }
 
         public function stopAd():void {
+            Console.log('stopAd');
             _adController.callAdMethod('stopAd');
             _adController.stop();
 
@@ -185,10 +199,12 @@ package com.sovrn.vpaid {
         }
 
         public function pauseAd():void {
+            Console.log('pauseAd');
             _adController.callAdMethod('pauseAd');
         }
 
         public function resumeAd():void {
+            Console.log('resumeAd');
             _adController.callAdMethod('resumeAd');
         }
 
@@ -197,30 +213,37 @@ package com.sovrn.vpaid {
         /* --------------------------- */
 
         public function skipAd():void {
+            Console.log('skipAd');
             _adController.callAdMethod('skipAd');
         }
 
         public function get adWidth():Number {
+            Console.log('adWidth');
             return Number(_adController.callAdMethod('adWidth', [], '0', 'get'));
         }
 
         public function get adHeight():Number {
+            Console.log('adHeight');
             return Number(_adController.callAdMethod('adHeight', [], '0', 'get'));
         }
 
         public function get adIcons():Boolean {
+            Console.log('adIcons');
             return _adController.callAdMethod('adIcons', [], false, 'get');
         }
 
         public function get adSkippableState():Boolean {
+            Console.log('adSkippableState');
             return _adController.callAdMethod('adSkippableState', [], false, 'get');
         }
 
         public function get adDuration():Number {
+            Console.log('adDuration');
             return _adController.callAdMethod('adDuration', [], -2, 'get');
         }
 
         public function get adCompanions():String {
+            Console.log('adCompanions');
             return _adController.callAdMethod('adCompanions', [], " ", 'get');
         }
     }

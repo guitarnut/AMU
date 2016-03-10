@@ -11,6 +11,10 @@ package com.sovrn.constants {
                     {
                         name: 'id',
                         required: false
+                    },
+                    {
+                        name: 'tid',
+                        required: false
                     }]
             },
             Wrapper: {

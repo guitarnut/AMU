@@ -5,8 +5,10 @@ package com.sovrn.ads {
     import com.sovrn.constants.Config;
     import com.sovrn.events.AdCueEvent;
     import com.sovrn.model.AdVO;
+    import com.sovrn.model.ApplicationVO;
     import com.sovrn.model.InitConfigVO;
     import com.sovrn.model.MediaFileVO;
+    import com.sovrn.net.Beacon;
     import com.sovrn.net.Log;
     import com.sovrn.utils.Console;
     import com.sovrn.view.Canvas;
@@ -29,6 +31,8 @@ package com.sovrn.ads {
         private var storedSetCalls:Array;
         private var trackingEvents:Object;
         private var impressions:Array;
+        private var beacon:Beacon;
+        private var _config:ApplicationVO;
         private var _view:Canvas;
 
         public function AdController():void {
@@ -37,6 +41,17 @@ package com.sovrn.ads {
 
         public function get impression():Boolean {
             return _impressionFired;
+        }
+
+        public function set config(data:ApplicationVO):void {
+            _config = data;
+        }
+
+        private function fireBeacon():void {
+            if (!beacon) {
+                beacon = new Beacon(_config);
+                beacon.fire();
+            }
         }
 
         public function set ads(ads:Array):void {
@@ -82,6 +97,7 @@ package com.sovrn.ads {
             // create a new object each time
             adCue = new AdCue(adCollection);
             addListeners(adCue);
+            fireBeacon();
         }
 
         private function addListeners(cue:AdCue):void {
@@ -234,7 +250,7 @@ package com.sovrn.ads {
             arguments = arguments || [];
 
             if (!adInstance) {
-                if (property == 'get') {
+                if (property == 'set') {
                     storedSetCalls.push({
                         method: method,
                         arguments: [arguments[0]]

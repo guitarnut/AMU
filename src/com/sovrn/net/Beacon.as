@@ -19,7 +19,7 @@ package com.sovrn.net {
 
         public function fire():void {
             var referrer:String = ExternalMethods.referrer();
-            var loc:String = config.trueLoc;
+            var loc:String = config.trueLoc || config.publisherLoc;
             var equals:RegExp = /=/g;
             var amp:RegExp = /&/g;
 
@@ -68,10 +68,6 @@ package com.sovrn.net {
             }
 
             return paramString;
-        }
-
-        public function get fired():Boolean {
-            return beaconFired;
         }
 
     }

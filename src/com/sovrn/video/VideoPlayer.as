@@ -2,7 +2,6 @@ package com.sovrn.video {
 
     import com.sovrn.constants.Config;
     import com.sovrn.constants.Errors;
-    import com.sovrn.events.AdInstanceEvent;
     import com.sovrn.model.MediaFileVO;
     import com.sovrn.net.Log;
     import com.sovrn.utils.Console;
@@ -11,8 +10,6 @@ package com.sovrn.video {
     import com.sovrn.view.Canvas;
 
     import flash.display.Sprite;
-    import flash.events.Event;
-    import flash.events.MouseEvent;
     import flash.events.NetStatusEvent;
     import flash.events.TimerEvent;
     import flash.media.SoundTransform;

@@ -67,6 +67,14 @@ package com.sovrn.video.view {
             return muted;
         }
 
+        public function show():void {
+            visible = true;
+        }
+
+        public function hide():void {
+            visible = false;
+        }
+
     }
 
 }
