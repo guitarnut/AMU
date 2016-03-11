@@ -12,6 +12,7 @@ package com.sovrn.ads {
     import com.sovrn.utils.Console;
     import com.sovrn.utils.Timeouts;
     import com.sovrn.view.Canvas;
+    import com.sovrn.vpaid.VPAIDState;
 
     import flash.display.Sprite;
     import flash.events.Event;
@@ -149,6 +150,7 @@ package com.sovrn.ads {
                 case VPAIDEvent.AdLoaded:
                     Timeouts.stop(Timeouts.AD_SESSION);
                     dispatchEvent(new AdInstanceEvent(AdInstanceEvent.AdLoaded));
+                    _ad.volume = VPAIDState.volume;
                     break;
                 case VPAIDEvent.AdError:
                     Timeouts.stop(Timeouts.LOAD_AD);

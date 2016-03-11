@@ -19,6 +19,7 @@ package com.sovrn.model {
         private var _vtid:String;
         private var _tid:String;
         private var _server:String;
+        private var _datafile:String;
 
         public function ApplicationVO() {
         }
@@ -133,6 +134,14 @@ package com.sovrn.model {
 
         public function get server():String {
             return this._server;
+        }
+
+        public function set datafile(val:String):void {
+            if (!this._datafile)this._datafile = val;
+        }
+
+        public function get datafile():String {
+            return this._datafile;
         }
     }
 

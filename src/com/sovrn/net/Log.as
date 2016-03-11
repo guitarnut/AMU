@@ -16,6 +16,8 @@ package com.sovrn.net {
         public static var AD_MANAGER_INITIALIZED:String = "AD_MANAGER_INITIALIZED";
         public static var END_SESSION:String = "END_SESSION";
 
+        public static var VIEWABILITY:String = "VIEWABILITY";
+
         public static var AD_DELIVERY_COMPLETE:String = "AD_DELIVERY_COMPLETE";
         public static var AD_DELIVERY_TIMEOUT:String = "AD_DELIVERY_TIMEOUT";
 
@@ -58,6 +60,9 @@ package com.sovrn.net {
                     break;
                 case AD_DELIVERY_COMPLETE:
                     send(event("AdDeliveryCallComplete", data));
+                    break;
+                case VIEWABILITY:
+                    send(event("Viewability", data));
                     break;
                 case AD_DELIVERY_TIMEOUT:
                     send(error(Errors.ADDELIVERY_TIMEOUT, data));

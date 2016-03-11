@@ -8,6 +8,7 @@ package com.sovrn.events {
 
         public static const INIT_AD_CALLED:String = "INIT_AD_CALLED";
         public static const AD_DELIVERY_COMPLETE:String = "AD_DELIVERY_COMPLETE";
+        public static const AD_DELIVERY_FAILED:String = "AD_DELIVERY_FAILED";
 
         private var _data:Object;
 

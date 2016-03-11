@@ -3,6 +3,7 @@ package com.sovrn.ads {
     import com.sovrn.constants.Config;
     import com.sovrn.events.AdManagerEvent;
     import com.sovrn.model.ApplicationVO;
+    import com.sovrn.net.Log;
     import com.sovrn.utils.Console;
     import com.sovrn.utils.ObjectTools;
     import com.sovrn.xml.XMLController;
@@ -67,6 +68,7 @@ package com.sovrn.ads {
 
         private function loaderEvents(e:Event):void {
             Console.log("request failed: " + e.type);
+            dispatchEvent(new AdManagerEvent(AdManagerEvent.AD_DELIVERY_FAILED));
         }
 
         private function getSources(e:Event):void {
@@ -90,6 +92,16 @@ package com.sovrn.ads {
             uri += "/" + Config.ENDPOINT_ADS;
             uri += "?";
 
+            if (config.datafile) {
+                Console.log('loading custom VAST');
+
+                uri += ObjectTools.paramString({
+                    datafile: config.datafile
+                });
+
+                return uri;
+            }
+
             uri += ObjectTools.paramString({
                 zoneid: config.zoneId,
                 u: config.publisherId,
@@ -97,6 +109,8 @@ package com.sovrn.ads {
                 loc: config.trueLoc,
                 vtid: config.vtid,
                 od: config.trueDomain,
+                vidwidth: config.stageWidth,
+                vidheight: config.stageHeight,
                 vidmimes: encodeURI(vidmimes.join(",")),
                 vidlinearity: vidlinearity,
                 vidmindur: vidmindur,

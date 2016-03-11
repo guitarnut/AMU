@@ -59,9 +59,14 @@ package com.sovrn.vpaid {
 
         private function dispatchAdEvent(e:Event):void {
             e.stopImmediatePropagation();
-            dispatchEvent(new VPAIDEvent(e.type));
 
-            showEvent(e.type);
+            if (!VPAIDState.eventFired(e.type)) {
+                dispatchEvent(new VPAIDEvent(e.type));
+                showEvent(e.type);
+            } else {
+                Console.log('blocked duplicate event ' + e.type);
+            }
+
         }
 
         private function showEvent(e:String):void {
@@ -100,6 +105,9 @@ package com.sovrn.vpaid {
                 case Errors.ADDELIVERY_TIMEOUT:
                     Log.msg(Log.AD_DELIVERY_TIMEOUT);
                     break;
+                case Errors.IO_ERROR:
+                    Log.msg(Log.IO_ERROR);
+                    break;
             }
 
             Timeouts.start(Timeouts.DESTROY, dispatchFinalEvent, this, [VPAIDEvent.AdError]);
@@ -136,6 +144,8 @@ package com.sovrn.vpaid {
                 creativeData: creativeData,
                 environmentVars: environmentVars
             }));
+
+            VPAIDState.initAd();
         }
 
         /* ------ getters / setters ----------------------------------------- */
@@ -162,6 +172,7 @@ package com.sovrn.vpaid {
 
         public function set adVolume(val:Number):void {
             Console.log('adVolume: ' + val);
+            VPAIDState.volume = val;
             _adController.callAdMethod('adVolume', [val], null, 'set');
         }
 
@@ -186,8 +197,18 @@ package com.sovrn.vpaid {
 
         public function startAd():void {
             Console.log('startAd');
-            Timeouts.start(Timeouts.AD_MANAGER_SESSION, fireAdError, this, []);
-            _adController.callAdMethod('startAd');
+
+            if (VPAIDState.AdLoadedFired) {
+                Timeouts.start(Timeouts.AD_MANAGER_SESSION, fireAdError, this, []);
+                _adController.callAdMethod('startAd');
+            } else {
+                Log.custom({
+                    vpaidEvent: 'AdLog',
+                    vpaidEventData: 'startAd called before AdLoaded fired'
+                });
+
+                fireAdError();
+            }
         }
 
         public function stopAd():void {

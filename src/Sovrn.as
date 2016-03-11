@@ -17,6 +17,7 @@ package {
     import com.sovrn.utils.StringTools;
     import com.sovrn.utils.Timeouts;
     import com.sovrn.view.Canvas;
+    import com.sovrn.vpaid.VPAIDState;
     import com.sovrn.vpaid.VPAIDWrapper;
 
     import flash.display.StageAlign;
@@ -27,13 +28,19 @@ package {
     import flash.system.Security;
     import flash.utils.setTimeout;
 
+    import org.openvv.OVVAsset;
+
+    //import org.openvv.OVVAsset;
+    import org.openvv.OVVCheck;
+
     import vpaid.VPAIDEvent;
 
     public class Sovrn extends VPAIDWrapper {
 
-        [Embed(source="../js/sovrn.js", mimeType="application/octet-stream")]
+        [Embed(source="./js/sovrn.js", mimeType="application/octet-stream")]
         private var js:Class;
 
+        private var beacon:OVVAsset;
         private var applicationConfig:ApplicationVO;
         private var vpaid:VPAIDWrapper;
         private var adController:AdController;
@@ -72,11 +79,15 @@ package {
             adDeliveryCalled = false;
             session = 1;
 
+            beacon = new OVVAsset('OVVBeacon.swf');
+
+            VPAIDState.reset();
+
+            if (ExternalMethods.available()) ExternalMethods.inject(new js().toString());
+
             Console.log("---------------------------------");
             Console.log("Sovrn Ad Manager");
             Console.log("---------------------------------");
-
-            if (ExternalMethods.available()) ExternalMethods.inject(new js().toString());
 
             config();
         }
@@ -100,10 +111,12 @@ package {
         private function config():void {
             if (this.loaderInfo.parameters) {
                 var params:Object = this.loaderInfo.parameters;
-
                 Console.obj(params);
-
                 Timeouts.setValues(params);
+
+                var viewability:Object = beacon.checkViewability();
+                var videoWidth:Number = viewability.objRight - viewability.objLeft;
+                var videoHeight:Number = viewability.objBottom - viewability.objTop;
 
                 applicationConfig = new ApplicationVO();
                 applicationConfig.parameters = params || {};
@@ -112,14 +125,24 @@ package {
                 applicationConfig.vtid = params.vtid || "";
                 applicationConfig.zoneId = params.zoneid || 0;
                 applicationConfig.server = params.ljt || Config.SERVER;
-                applicationConfig.stageWidth = params.vidwidth || this.width || 0;
-                applicationConfig.stageHeight = params.vidheight || this.height || 0;
+                applicationConfig.stageWidth = videoWidth || params.vidwidth || this.width || 0;
+                applicationConfig.stageHeight = videoHeight || params.vidheight || this.height || 0;
                 applicationConfig.trueLoc = ExternalMethods.userLoc() || "";
                 applicationConfig.trueDomain = StringTools.domain(applicationConfig.trueLoc);
                 applicationConfig.view = view;
+                applicationConfig.datafile = params.datafile || null;
 
                 Log.init(applicationConfig);
-                //Console.obj(applicationConfig);
+                Log.msg(Log.VIEWABILITY, ObjectTools.paramString({
+                    width: applicationConfig.stageWidth,
+                    height: applicationConfig.stageHeight,
+                    percentViewable: viewability.percentViewable,
+                    clientWidth: viewability.clientWidth,
+                    clientHeight: viewability.clientHeight,
+                    iframe: viewability.inIframe,
+                    state: viewability.viewabilityState,
+                    focus: viewability.focus
+                }));
 
                 if (validateConfig()) {
                     Log.msg(Log.AD_MANAGER_INITIALIZED, "session_" + session);
@@ -182,7 +205,12 @@ package {
             Timeouts.start(Timeouts.AD_DELIVERY_CALL, fireAdError, vpaid, [Errors.ADDELIVERY_TIMEOUT]);
             adCall = new AdCall(applicationConfig);
             adCall.addEventListener(AdManagerEvent.AD_DELIVERY_COMPLETE, serveAds);
+            adCall.addEventListener(AdManagerEvent.AD_DELIVERY_FAILED, adCallFailed);
             adCall.sendRequest();
+        }
+
+        private function adCallFailed(e:Event):void {
+            fireAdError(Errors.IO_ERROR);
         }
 
         private function serveAds(e:*):void {
@@ -233,16 +261,16 @@ package {
             if (e.type == VPAIDEvent.AdError) Log.msg(Log.END_SESSION);
             if (e.type == VPAIDEvent.AdStopped && !adController.impression) Log.msg(Log.END_SESSION);
 
-            if (sessionStarted) {
-                sessionStarted = false;
-                initCalled = false;
-                adDeliveryCalled = false;
-                adLoaded = false;
-                adController.reset();
-                session++;
+            sessionStarted = false;
+            initCalled = false;
+            adDeliveryCalled = false;
+            adLoaded = false;
+            adController.reset();
+            session++;
 
-                setupStage();
-            }
+            VPAIDState.reset();
+
+            setupStage();
         }
 
     }

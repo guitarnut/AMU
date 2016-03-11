@@ -30,11 +30,9 @@
             <load-config filename="${FLEX_HOME}/frameworks/flex-config.xml"/>
             <source-path path-element="${FLEX_HOME}/frameworks"/>
             <compiler.source-path path-element="${src.dir}"/>
-            <!--
             <compiler.include-libraries dir="${basedir}/${lib.dir}" append="true">
                 <include name="openvv.swc"/>
             </compiler.include-libraries>
-            -->
         </mxmlc>
         <!--
         <copy todir="${bin.dir}">
