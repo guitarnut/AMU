@@ -6,7 +6,7 @@ package com.sovrn.constants {
 
         public static const SCHEMA:Object = {
             Ad: {
-                required: true,
+                required: false,
                 attributes: [
                     {
                         name: 'id',
@@ -18,10 +18,10 @@ package com.sovrn.constants {
                     }]
             },
             Wrapper: {
-                required: true
+                required: false
             },
             VASTAdTagURI: {
-                required: true
+                required: false
             },
             AdSystem: {
             },
@@ -35,7 +35,7 @@ package com.sovrn.constants {
                 required: false
             },
             Linear: {
-                required: true
+                required: false
             },
             Tracking: {
                 required: false,

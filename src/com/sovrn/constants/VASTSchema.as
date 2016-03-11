@@ -22,7 +22,7 @@ package com.sovrn.constants {
                     }]
             },
             InLine: {
-                required: true
+                required: false
             },
 
             Error: {
@@ -32,10 +32,10 @@ package com.sovrn.constants {
                 required: false
             },
             Linear: {
-                required: true
+                required: false
             },
             Duration: {
-                required: true
+                required: false
             },
             Tracking: {
                 required: false,
@@ -56,7 +56,7 @@ package com.sovrn.constants {
                 required: false
             },
             MediaFile: {
-                required: true,
+                required: false,
                 attributes: [
                     {
                         name: 'id',
@@ -68,7 +68,7 @@ package com.sovrn.constants {
                     },
                     {
                         name: 'type',
-                        required: true
+                        required: false
                     },
                     {
                         name: 'width',

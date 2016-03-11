@@ -93,6 +93,7 @@ package com.sovrn.vpaid {
                     break;
                 case VPAIDEvent.AdImpression:
                     Timeouts.stop(Timeouts.AD_MANAGER_SESSION);
+                        Log.msg(Log.AD_IMPRESSION);
                     dispatchEvent(new VPAIDEvent(VPAIDEvent.AdImpression));
                     showEvent(VPAIDEvent.AdImpression);
                     break;
