@@ -1,6 +1,19 @@
 package com.sovrn.vpaid {
 
+    import vpaid.VPAIDEvent;
+
     public class VPAIDState {
+
+        private static const REPEATABLE_EVENTS:Array = [
+            VPAIDEvent.AdRemainingTimeChange,
+            VPAIDEvent.AdVolumeChange,
+            VPAIDEvent.AdClickThru,
+            VPAIDEvent.AdSizeChange,
+            VPAIDEvent.AdLinearChange,
+            VPAIDEvent.AdSkippableStateChange,
+            VPAIDEvent.AdExpandedChange,
+            VPAIDEvent.AdUserMinimize
+        ];
 
         private static var _init_ad_called:Boolean;
         private static var _ad_loaded_fired:Boolean;
@@ -23,8 +36,8 @@ package com.sovrn.vpaid {
         }
 
         public static function eventFired(e:String):Boolean {
-            if(_fired_events.indexOf(e) == -1) {
-                _fired_events.push(e);
+            if (_fired_events.indexOf(e) == -1) {
+                if (REPEATABLE_EVENTS.indexOf(e) == -1) _fired_events.push(e);
                 return false;
             } else {
                 return true;
@@ -86,7 +99,6 @@ package com.sovrn.vpaid {
         public static function get volume():Number {
             return _ad_volume;
         }
-
 
     }
 

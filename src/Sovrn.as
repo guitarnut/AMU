@@ -9,6 +9,7 @@ package {
     import com.sovrn.constants.Errors;
     import com.sovrn.events.AdManagerEvent;
     import com.sovrn.model.ApplicationVO;
+    import com.sovrn.net.Impression;
     import com.sovrn.net.Log;
     import com.sovrn.utils.Console;
     import com.sovrn.utils.ExternalMethods;
@@ -29,9 +30,6 @@ package {
     import flash.utils.setTimeout;
 
     import org.openvv.OVVAsset;
-
-    //import org.openvv.OVVAsset;
-    import org.openvv.OVVCheck;
 
     import vpaid.VPAIDEvent;
 
@@ -252,6 +250,7 @@ package {
 
                     view.show();
                     adController.view = applicationConfig.view;
+                    adController.impression = new Impression(applicationConfig);
                     adController.loadAd();
                 }
             }
@@ -259,7 +258,7 @@ package {
 
         private function end(e:Event = null):void {
             if (e.type == VPAIDEvent.AdError) Log.msg(Log.END_SESSION);
-            if (e.type == VPAIDEvent.AdStopped && !adController.impression) Log.msg(Log.END_SESSION);
+            if (e.type == VPAIDEvent.AdStopped && !adController.impressionFired) Log.msg(Log.END_SESSION);
 
             sessionStarted = false;
             initCalled = false;

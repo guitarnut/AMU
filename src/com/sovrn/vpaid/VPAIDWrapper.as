@@ -84,16 +84,22 @@ package com.sovrn.vpaid {
                     break;
                 case VPAIDEvent.AdLoaded:
                     Log.msg(Log.AD_LOADED);
-                    Timeouts.stop(Timeouts.AD_MANAGER_SESSION);
-                    dispatchEvent(new VPAIDEvent(VPAIDEvent.AdLoaded));
-                    showEvent(VPAIDEvent.AdLoaded);
+
+                    if (VPAIDState.eventFired(e.type)) {
+                        Log.msg('trying next ad source');
+                        startAd();
+                    } else {
+                        Timeouts.stop(Timeouts.AD_MANAGER_SESSION);
+                        dispatchEvent(new VPAIDEvent(VPAIDEvent.AdLoaded));
+                        showEvent(VPAIDEvent.AdLoaded);
+                    }
                     break;
                 case VPAIDEvent.AdStopped:
                     Timeouts.start(Timeouts.DESTROY, dispatchFinalEvent, this, [VPAIDEvent.AdStopped]);
                     break;
                 case VPAIDEvent.AdImpression:
                     Timeouts.stop(Timeouts.AD_MANAGER_SESSION);
-                        Log.msg(Log.AD_IMPRESSION);
+                    Log.msg(Log.AD_IMPRESSION);
                     dispatchEvent(new VPAIDEvent(VPAIDEvent.AdImpression));
                     showEvent(VPAIDEvent.AdImpression);
                     break;

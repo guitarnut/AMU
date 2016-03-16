@@ -9,6 +9,7 @@ package com.sovrn.ads {
     import com.sovrn.model.InitConfigVO;
     import com.sovrn.model.MediaFileVO;
     import com.sovrn.net.Beacon;
+    import com.sovrn.net.Impression;
     import com.sovrn.net.Log;
     import com.sovrn.utils.Console;
     import com.sovrn.view.Canvas;
@@ -32,6 +33,7 @@ package com.sovrn.ads {
         private var trackingEvents:Object;
         private var impressions:Array;
         private var beacon:Beacon;
+        private var _impression:Impression;
         private var _initConfig:InitConfigVO;
         private var _impressionFired:Boolean = false;
         private var _config:ApplicationVO;
@@ -41,7 +43,11 @@ package com.sovrn.ads {
             dispatcher = new EventDispatcher();
         }
 
-        public function get impression():Boolean {
+        public function set impression(val:Impression):void {
+            _impression = val;
+        }
+
+        public function get impressionFired():Boolean {
             return _impressionFired;
         }
 
@@ -215,6 +221,14 @@ package com.sovrn.ads {
         }
 
         private function firePixels(pixels:Array, event:String, useLimit:Boolean = true):void {
+            pixels.map(function (val:String, index:Number, array:Array):void {
+                if (val.indexOf(Config.BLOCKED_PIXEL) != -1) {
+                    array.splice(index - 1, 1);
+                    Console.log('removed pixel ' + val);
+                    Console.obj(array);
+                }
+            });
+
             for (var i:Number = 0, len:Number = pixels.length; i < len; i++) {
                 if (useLimit) {
                     if (i < Config.TRACKING_PIXEL_LIMIT) {
@@ -353,8 +367,11 @@ package com.sovrn.ads {
         }
 
         private function adImpression(e:AdCueEvent):void {
+            _impression.fire(e.data.ad_data);
             _impressionFired = true;
-            Log.msg(Log.AD_IMPRESSION);
+
+            Log.msg(Log.AD_IMPRESSION, "shim");
+
             logSourceResult(AdSourceResult.IMPRESSION, e.data.ad_data);
             dispatchEvent(new VPAIDEvent(VPAIDEvent.AdImpression));
             trackEvent(VPAIDEvent.AdImpression);
