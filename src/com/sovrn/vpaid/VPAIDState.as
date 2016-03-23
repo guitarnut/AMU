@@ -57,7 +57,7 @@ package com.sovrn.vpaid {
         }
 
         public static function get AdLoadedFired():Boolean {
-            return _init_ad_called;
+            return _ad_loaded_fired;
         }
 
         public static function AdStarted():void {
@@ -65,7 +65,7 @@ package com.sovrn.vpaid {
         }
 
         public static function get AdStartedFired():Boolean {
-            return _init_ad_called;
+            return _ad_started_fired;
         }
 
         public static function AdImpression():void {
@@ -73,7 +73,7 @@ package com.sovrn.vpaid {
         }
 
         public static function get AdImpressionFired():Boolean {
-            return _init_ad_called;
+            return _ad_impression_fired;
         }
 
         public static function AdStopped():void {

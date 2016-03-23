@@ -10,7 +10,7 @@ package com.sovrn.constants {
                 required: false
             },
             Ad: {
-                required: true,
+                required: false,
                 attributes: [
                     {
                         name: 'id',

@@ -33,32 +33,37 @@ package com.sovrn.net {
 
             addListeners(loader);
 
-            loader.load(new URLRequest(uri), context);
-            //loader.load(new URLRequest(uri));
+            try {
+                loader.load(new URLRequest(uri), context);
+            } catch (e:Error) {
+                //
+            }
         }
 
         private function addListeners(target:IEventDispatcher):void {
             Loader(target).contentLoaderInfo.addEventListener(Event.COMPLETE, complete);
             Loader(target).uncaughtErrorEvents.addEventListener(UncaughtErrorEvent.UNCAUGHT_ERROR, uncaughtErrorHandler);
-            Loader(target).addEventListener(IOErrorEvent.IO_ERROR, handleErrors);
+            Loader(target).contentLoaderInfo.uncaughtErrorEvents.addEventListener(UncaughtErrorEvent.UNCAUGHT_ERROR, uncaughtErrorHandler);
+            Loader(target).contentLoaderInfo.addEventListener(IOErrorEvent.IO_ERROR, handleErrors);
             Loader(target).addEventListener(HTTPStatusEvent.HTTP_STATUS, handleHTTPEvents);
             Loader(target).addEventListener(SecurityErrorEvent.SECURITY_ERROR, handleErrors);
         }
 
         private function cleanup(target:IEventDispatcher):void {
             Loader(target).contentLoaderInfo.removeEventListener(Event.COMPLETE, complete);
-            Loader(target).uncaughtErrorEvents.removeEventListener(UncaughtErrorEvent.UNCAUGHT_ERROR, handleErrors);
-            Loader(target).removeEventListener(IOErrorEvent.IO_ERROR, handleErrors);
+            Loader(target).uncaughtErrorEvents.removeEventListener(UncaughtErrorEvent.UNCAUGHT_ERROR, uncaughtErrorHandler);
+            Loader(target).contentLoaderInfo.uncaughtErrorEvents.removeEventListener(UncaughtErrorEvent.UNCAUGHT_ERROR, uncaughtErrorHandler);
+            Loader(target).contentLoaderInfo.removeEventListener(IOErrorEvent.IO_ERROR, handleErrors);
             Loader(target).removeEventListener(HTTPStatusEvent.HTTP_STATUS, handleHTTPEvents);
             Loader(target).removeEventListener(SecurityErrorEvent.SECURITY_ERROR, handleErrors);
         }
 
         private function handleErrors(e:*):void {
-            // e.type
+            // throw new Error('unable to load content: ' + e.type());
         }
 
         private function uncaughtErrorHandler(e:UncaughtErrorEvent):void {
-            // e.toString()
+            // throw new Error('uncaught error: ' + e.toString());
         }
 
         private function handleHTTPEvents(e:*):void {

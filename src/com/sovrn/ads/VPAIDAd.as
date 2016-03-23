@@ -173,7 +173,12 @@ package com.sovrn.ads {
          ------------------------ */
 
         public function destroy():void {
-            _view.removeChild(adObject);
+            try {
+                _view.removeChild(adObject);
+            } catch (e:Error) {
+                Console.log('unable to remove ad object from view');
+            }
+
             removeVPAIDEvents(_ad);
             adLoader.cancel();
             _ad = null;

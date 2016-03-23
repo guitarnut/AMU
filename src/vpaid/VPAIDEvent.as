@@ -48,6 +48,7 @@ package vpaid {
         public static const AdSourceResult:String = "AdSourceResult";
         public static const AdTimeout:String = "AdTimeout";
         public static const BeaconFailed:String = "BeaconFailed";
+        public static const ImpressionViewable:String = "ImpressionViewable";
 
         public static const DONT_LOG:Array = [VPAIDEvent.AdRemainingTimeChange];
 

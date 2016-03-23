@@ -17,27 +17,6 @@ package com.sovrn.ads {
 
     public class AdCall extends Sprite {
 
-        /*
-
-         addelivery?
-         vtid=v_333029_3071aa2ce6e843879e2ce9eaf130651f&
-         zoneid=333029&
-         u=DingIt&
-         sovrnid=DingIt&
-         loc=http://www.dingit.tv/highlight/1274169&
-         od=dingit.tv&
-         vidwidth=650&
-         vidheight=319&
-         vidautoplay=1&
-         vidmimes=application/x-shockwave-flash%2Cvideo/mp4%2Cvideo/x-flv&
-         vidlinearity=1&
-         vidmindur=5&
-         vidmaxdur=60&
-         vidprotocol=1%2C2%2C4%2C5&
-         vidstartdelay=0
-
-         */
-
         private var config:ApplicationVO;
         private var xmlController:XMLController;
         private var vidmimes:Array = ["application/x-shockwave-flash", "video/mp4", "video/x-flv"];
@@ -59,7 +38,6 @@ package com.sovrn.ads {
             load.addEventListener(IOErrorEvent.IO_ERROR, loaderEvents);
 
             load.load(new URLRequest(buildURI()));
-
         }
 
         private function eventRequestCompleted(e:Event):void {
@@ -81,7 +59,13 @@ package com.sovrn.ads {
             e.stopImmediatePropagation();
             xmlController.removeEventListener(Event.COMPLETE, adsReady);
 
-            dispatchEvent(new AdManagerEvent(AdManagerEvent.AD_DELIVERY_COMPLETE, {ads: xmlController.sources}));
+            if(xmlController.sources.length > 0) {
+                Console.obj(xmlController.sources);
+                dispatchEvent(new AdManagerEvent(AdManagerEvent.AD_DELIVERY_COMPLETE, {ads: xmlController.sources}));
+            } else {
+                Log.msg(Log.VAST_PARSE_ERROR, "no ad sources found");
+                dispatchEvent(new AdManagerEvent(AdManagerEvent.AD_DELIVERY_FAILED));
+            }
 
             xmlController = null;
         }

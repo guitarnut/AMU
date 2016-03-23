@@ -37,7 +37,6 @@ package com.sovrn.xml {
                 } catch (e:Error) {
                     Log.msg(Log.VAST_PARSE_ERROR, e.toString());
                     sourceCount--;
-                    parser.removeEventListener(Event.COMPLETE, storeAd);
                     Console.log(e.toString());
                     checkSources();
                 }
@@ -47,9 +46,12 @@ package com.sovrn.xml {
         private function storeAd(e:Event):void {
             e.stopImmediatePropagation();
 
+            var parser:XMLParser = XMLParser(e.target);
+            parser.removeEventListener(Event.COMPLETE, storeAd);
+
             sourceCount--;
-            XMLParser(e.target).removeEventListener(Event.COMPLETE, storeAd);
-            ads.push(XMLParser(e.target).ad);
+
+            if (parser.ad) ads.push(parser.ad);
 
             checkSources();
         }

@@ -4,8 +4,11 @@ package com.sovrn.model {
 
     import flash.display.DisplayObjectContainer;
 
+    import org.openvv.OVVAsset;
+
     public class ApplicationVO extends Object {
         private var _name:String;
+        private var _sessionId:Number;
         private var _version:String;
         private var _view:Canvas;
         private var _parameters:Object;
@@ -20,6 +23,7 @@ package com.sovrn.model {
         private var _tid:String;
         private var _server:String;
         private var _datafile:String;
+        private var _ovv:OVVAsset;
 
         public function ApplicationVO() {
         }
@@ -30,6 +34,14 @@ package com.sovrn.model {
 
         public function get name():String {
             return this._name;
+        }
+
+        public function set sessionId(val:Number):void {
+            if (!this._sessionId) this._sessionId = val;
+        }
+
+        public function get sessionId():Number {
+            return this._sessionId;
         }
 
         public function set version(val:String):void {
@@ -142,6 +154,14 @@ package com.sovrn.model {
 
         public function get datafile():String {
             return this._datafile;
+        }
+
+        public function set viewability(val:OVVAsset):void {
+            if (!this._ovv)this._ovv = val;
+        }
+
+        public function get viewability():OVVAsset {
+            return this._ovv;
         }
     }
 

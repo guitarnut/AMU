@@ -83,6 +83,8 @@ package {
 
             if (ExternalMethods.available()) ExternalMethods.inject(new js().toString());
 
+            Console.sessionID = Math.round(Math.random() * 1E5);
+
             Console.log("---------------------------------");
             Console.log("Sovrn Ad Manager");
             Console.log("---------------------------------");
@@ -91,6 +93,8 @@ package {
         }
 
         private function uncaughtErrorHandler(e:UncaughtErrorEvent):void {
+            e.stopImmediatePropagation();
+
             var message:String = "";
 
             if (e.error is Error) {
@@ -129,6 +133,9 @@ package {
                 applicationConfig.trueDomain = StringTools.domain(applicationConfig.trueLoc);
                 applicationConfig.view = view;
                 applicationConfig.datafile = params.datafile || null;
+                applicationConfig.viewability = beacon;
+
+                Console.log(applicationConfig.server);
 
                 Log.init(applicationConfig);
                 Log.msg(Log.VIEWABILITY, ObjectTools.paramString({
@@ -208,7 +215,8 @@ package {
         }
 
         private function adCallFailed(e:Event):void {
-            fireAdError(Errors.IO_ERROR);
+            Timeouts.stop(Timeouts.AD_DELIVERY_CALL);
+            fireAdError();
         }
 
         private function serveAds(e:*):void {
@@ -257,18 +265,22 @@ package {
         }
 
         private function end(e:Event = null):void {
-            if (e.type == VPAIDEvent.AdError) Log.msg(Log.END_SESSION);
-            if (e.type == VPAIDEvent.AdStopped && !adController.impressionFired) Log.msg(Log.END_SESSION);
+            Timeouts.stop(Timeouts.AD_MANAGER_SESSION);
+
+            if (e) {
+                if (e.type == VPAIDEvent.AdError) Log.msg(Log.END_SESSION);
+                if (e.type == VPAIDEvent.AdStopped && !adController.impressionFired) Log.msg(Log.END_SESSION);
+            }
 
             sessionStarted = false;
             initCalled = false;
             adDeliveryCalled = false;
             adLoaded = false;
+
             adController.reset();
             session++;
 
             VPAIDState.reset();
-
             setupStage();
         }
 

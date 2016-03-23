@@ -39,7 +39,6 @@ package com.sovrn.net {
         public static var DOMAIN_MISMATCH:String = "DOMAIN_MISMATCH";
 
         public static var AD_VPAID_TIMEOUT:String = "AD_VPAID_TIMEOUT";
-        public static var AD_SOURCES_TIMEOUT:String = "AD_SOURCES_TIMEOUT";
         public static var INIT_TIMEOUT:String = "INIT_TIMEOUT";
 
         public static var IO_ERROR:String = "IO_ERROR";
@@ -145,8 +144,9 @@ package com.sovrn.net {
         }
 
         private static function send(params:Object):void {
-            Console.log("//" + Config.SERVER + "/" + Config.ENDPOINT_LOG + "?" + signature() + "&" + ObjectTools.paramString(params));
-            new URLLoader().load(new URLRequest("//" + Config.SERVER + "/" + Config.ENDPOINT_LOG + "?" + signature() + "&" + ObjectTools.paramString(params)));
+            var request:String = "//" + config.server + "/" + Config.ENDPOINT_LOG + "?" + signature() + "&" + ObjectTools.paramString(params);
+            Console.log(request);
+            new URLLoader().load(new URLRequest(request));
         }
 
     }

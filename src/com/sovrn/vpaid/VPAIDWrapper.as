@@ -8,6 +8,8 @@ package com.sovrn.vpaid {
     import com.sovrn.net.Log;
     import com.sovrn.utils.Console;
     import com.sovrn.utils.Timeouts;
+    import com.sovrn.vpaid.VPAIDState;
+    import com.sovrn.vpaid.VPAIDState;
 
     import flash.display.Sprite;
     import flash.events.Event;
@@ -59,14 +61,7 @@ package com.sovrn.vpaid {
 
         private function dispatchAdEvent(e:Event):void {
             e.stopImmediatePropagation();
-
-            if (!VPAIDState.eventFired(e.type)) {
-                dispatchEvent(new VPAIDEvent(e.type));
-                showEvent(e.type);
-            } else {
-                Console.log('blocked duplicate event ' + e.type);
-            }
-
+            dispatchVPAIDEvent(e.type);
         }
 
         private function showEvent(e:String):void {
@@ -75,6 +70,7 @@ package com.sovrn.vpaid {
 
         private function handleAdControllerEvent(e:Event):void {
             e.stopImmediatePropagation();
+
             Console.log('controller: ' + e.type);
 
             switch (e.type) {
@@ -84,14 +80,14 @@ package com.sovrn.vpaid {
                     break;
                 case VPAIDEvent.AdLoaded:
                     Log.msg(Log.AD_LOADED);
+                    dispatchVPAIDEvent(VPAIDEvent.AdLoaded);
 
-                    if (VPAIDState.eventFired(e.type)) {
+                    if (VPAIDState.AdLoadedFired) {
                         Log.msg('trying next ad source');
                         startAd();
                     } else {
+                        VPAIDState.AdLoaded();
                         Timeouts.stop(Timeouts.AD_MANAGER_SESSION);
-                        dispatchEvent(new VPAIDEvent(VPAIDEvent.AdLoaded));
-                        showEvent(VPAIDEvent.AdLoaded);
                     }
                     break;
                 case VPAIDEvent.AdStopped:
@@ -100,8 +96,7 @@ package com.sovrn.vpaid {
                 case VPAIDEvent.AdImpression:
                     Timeouts.stop(Timeouts.AD_MANAGER_SESSION);
                     Log.msg(Log.AD_IMPRESSION);
-                    dispatchEvent(new VPAIDEvent(VPAIDEvent.AdImpression));
-                    showEvent(VPAIDEvent.AdImpression);
+                    dispatchVPAIDEvent(VPAIDEvent.AdImpression);
                     break;
             }
         }
@@ -120,10 +115,18 @@ package com.sovrn.vpaid {
             Timeouts.start(Timeouts.DESTROY, dispatchFinalEvent, this, [VPAIDEvent.AdError]);
         }
 
+        private function dispatchVPAIDEvent(event:String):void {
+            if (!VPAIDState.eventFired(event)) {
+                dispatchEvent(new VPAIDEvent(event));
+                showEvent(event);
+            } else {
+                Console.log('blocked duplicate event ' + event);
+            }
+        }
+
         // this should be the only place in the code AdStopped and AdError can propogate from
         private function dispatchFinalEvent(e:String):void {
-            showEvent(e);
-            dispatchEvent(new VPAIDEvent(e));
+            dispatchVPAIDEvent(e);
         }
 
         public function getVPAID():* {
@@ -141,7 +144,7 @@ package com.sovrn.vpaid {
         }
 
         public function initAd(width:Number, height:Number, viewMode:String, desiredBitrate:Number, creativeData:String = "", environmentVars:String = ""):void {
-            Console.log('initAd');
+            Console.log('video player called initAd');
             Timeouts.start(Timeouts.AD_MANAGER_SESSION, fireAdError, this, []);
             dispatchEvent(new AdManagerEvent(AdManagerEvent.INIT_AD_CALLED, {
                 width: width,
@@ -158,12 +161,12 @@ package com.sovrn.vpaid {
         /* ------ getters / setters ----------------------------------------- */
 
         public function get adLinear():Boolean {
-            Console.log('adLinear');
+            Console.log('video player called get adLinear');
             return _adController.callAdMethod('adLinear', [], true, 'get');
         }
 
         public function get adExpanded():Boolean {
-            Console.log('adExpanded');
+            Console.log('video player called get adExpanded');
             return _adController.callAdMethod('adExpanded', [], false, 'get');
         }
 
@@ -173,12 +176,12 @@ package com.sovrn.vpaid {
         }
 
         public function get adVolume():Number {
-            Console.log('adVolume');
+            Console.log('video player called get adVolume');
             return Number(_adController.callAdMethod('adVolume', [], '0', 'get'));
         }
 
         public function set adVolume(val:Number):void {
-            Console.log('adVolume: ' + val);
+            Console.log('video player called set adVolume: ' + val);
             VPAIDState.volume = val;
             _adController.callAdMethod('adVolume', [val], null, 'set');
         }
@@ -186,24 +189,24 @@ package com.sovrn.vpaid {
         /* ------ layout methods ----------------------------------------- */
 
         public function resizeAd(w:Number, h:Number, viewMode:String):void {
-            Console.log('resizeAd');
+            Console.log('video player called resizeAd: ' + w + ', ' + h);
             _adController.callAdMethod('resizeAd', [w, h, viewMode]);
         }
 
         /* ------  control methods ----------------------------------------- */
 
         public function expandAd():void {
-            Console.log('expandAd');
+            Console.log('video player called expandAd');
             _adController.callAdMethod('expandAd');
         }
 
         public function collapseAd():void {
-            Console.log('collapseAd');
+            Console.log('video player called collapseAd');
             _adController.callAdMethod('collapseAd');
         }
 
         public function startAd():void {
-            Console.log('startAd');
+            Console.log('video player called startAd');
 
             if (VPAIDState.AdLoadedFired) {
                 Timeouts.start(Timeouts.AD_MANAGER_SESSION, fireAdError, this, []);
@@ -219,7 +222,7 @@ package com.sovrn.vpaid {
         }
 
         public function stopAd():void {
-            Console.log('stopAd');
+            Console.log('video player called stopAd');
             _adController.callAdMethod('stopAd');
             _adController.stop();
 
@@ -227,12 +230,12 @@ package com.sovrn.vpaid {
         }
 
         public function pauseAd():void {
-            Console.log('pauseAd');
+            Console.log('video player called pauseAd');
             _adController.callAdMethod('pauseAd');
         }
 
         public function resumeAd():void {
-            Console.log('resumeAd');
+            Console.log('video player called resumeAd');
             _adController.callAdMethod('resumeAd');
         }
 
@@ -241,37 +244,37 @@ package com.sovrn.vpaid {
         /* --------------------------- */
 
         public function skipAd():void {
-            Console.log('skipAd');
+            Console.log('video player called skipAd');
             _adController.callAdMethod('skipAd');
         }
 
         public function get adWidth():Number {
-            Console.log('adWidth');
+            Console.log('video player called get adWidth');
             return Number(_adController.callAdMethod('adWidth', [], '0', 'get'));
         }
 
         public function get adHeight():Number {
-            Console.log('adHeight');
+            Console.log('video player called get adHeight');
             return Number(_adController.callAdMethod('adHeight', [], '0', 'get'));
         }
 
         public function get adIcons():Boolean {
-            Console.log('adIcons');
+            Console.log('video player called get adIcons');
             return _adController.callAdMethod('adIcons', [], false, 'get');
         }
 
         public function get adSkippableState():Boolean {
-            Console.log('adSkippableState');
+            Console.log('video player called get adSkippableState');
             return _adController.callAdMethod('adSkippableState', [], false, 'get');
         }
 
         public function get adDuration():Number {
-            Console.log('adDuration');
+            Console.log('video player called get adDuration');
             return _adController.callAdMethod('adDuration', [], -2, 'get');
         }
 
         public function get adCompanions():String {
-            Console.log('adCompanions');
+            Console.log('video player called get adCompanions');
             return _adController.callAdMethod('adCompanions', [], " ", 'get');
         }
     }

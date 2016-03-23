@@ -179,6 +179,15 @@ package com.sovrn.ads {
 
         private function handleAdEvent(e:Event):void {
             trackEvent(e.type);
+            adEventBehaviors(e.type);
+        }
+
+        private function adEventBehaviors(e:String):void {
+            switch(e) {
+                case VPAIDEvent.AdClickThru:
+                    _impression.fireViewableImpression(true);
+                    break;
+            }
         }
 
         /* ------------------------
@@ -323,7 +332,7 @@ package com.sovrn.ads {
 
         public function stop():void {
             removeAdEvents();
-            adCue.stop();
+            if (adCue) adCue.stop();
         }
 
         /* ------------------------
@@ -411,7 +420,8 @@ package com.sovrn.ads {
 
         public function reset():void {
             stop();
-            removeListeners(adCue);
+
+            if (adCue) removeListeners(adCue);
 
             _impressionFired = false;
             adCue = null;

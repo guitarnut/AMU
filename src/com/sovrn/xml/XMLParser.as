@@ -6,6 +6,7 @@ package com.sovrn.xml {
     import com.sovrn.model.AdVO;
     import com.sovrn.model.MediaFileVO;
     import com.sovrn.net.GETRequest;
+    import com.sovrn.net.Log;
     import com.sovrn.utils.Console;
 
     import flash.display.Sprite;
@@ -196,14 +197,23 @@ package com.sovrn.xml {
         private function loadWrapper(uri:String):void {
             if (wrapperCount < wrapperLimit) {
                 try {
+                    Console.log('loading wrapper');
+
                     wrapper = new GETRequest(uri);
                     wrapper.addEventListener(Event.COMPLETE, wrapperLoaded);
                     wrapper.sendRequest();
                 } catch (e:Error) {
                     wrapper.removeEventListener(Event.COMPLETE, wrapperLoaded);
                     wrapper = null;
+                    Log.custom({
+                        vpaidEvent: "AdLog",
+                        vpaidEventData: e.toString()
+                    });
+
+                    throw new Error(e.toString());
                 }
             } else {
+                Console.log('wrapper limit reached');
                 wrapperLimitReached();
             }
         }
@@ -215,7 +225,12 @@ package com.sovrn.xml {
             wrapper = null;
             wrapperCount++;
 
-            init(e.target.data);
+            if(e.target.data) {
+                init(e.target.data);
+            } else {
+                adData = null;
+                dispatchEvent(new Event(Event.COMPLETE));
+            }
         }
 
         private function parsingComplete():void {
